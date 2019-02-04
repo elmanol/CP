@@ -27,16 +27,16 @@ y_c_Ti = y_c_T;
 r = 2;
 
 %charger radius
-r_c = 3.5;
+r_c = 2.5;
 
 %number of devices
-nPoints = 4;
+nPoints = 10;
 
 %minimum allowed distance from the chargers
 minAllowableDistance = r;
 
 %find random devices positions
-[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+ [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
@@ -71,7 +71,7 @@ end
 
 %find the devices that are in the range of both chargers
 inter = intersect(C{1},C{2});
-
+closeToDevArray=[];
 for i=1:numel(inter)
     %dokimastiko
     device1 = [locDev(1,inter(1)) locDev(2,inter(1))];
@@ -80,7 +80,7 @@ for i=1:numel(inter)
     
 	d1=norm( device1 - [x_c_T(1) y_c_T(1)]);
     d2=norm( device1 - [x_c_T(2) y_c_T(2)]);
-    move=(d1<d2)+1;
+    move=(d1>d2)+1;
 
     %find the line intersecting both the device and the charger
     coefficients = polyfit([device(1) x_c_Ti(move)], [device(2) y_c_Ti(move)], 1);
@@ -90,15 +90,25 @@ for i=1:numel(inter)
     %find the intersections between the line and the circle
     [C_interx, C_intery] = linecirc(a,b,x_c_Ti(move),y_c_Ti(move),r);
 
-
-    
-    %find the line between the two intersections
-    [ linex, liney ] = liner([C_interx(1),C_intery(1)], [C_interx(2),C_intery(2)]);
-
    
     %get the closest point on the line (and circle) to the device
-    closeToDev=[C_interx(1),C_intery(1)];
+    dc1=norm([C_interx(1), C_intery(1)]-device);
+    dc2=norm([C_interx(2), C_intery(2)]-device);
+    if dc1<=dc2
+        closeToDev=[C_interx(1),C_intery(1)];
+        %find the line between the two intersections
+        [ linex, liney ] = liner(closeToDev, [C_interx(2),C_intery(2)]);
+    else
+        closeToDev=[C_interx(2),C_intery(2)];
+        %find the line between the two intersections
+        [ linex, liney ] = liner(closeToDev,[C_interx(1),C_intery(1)]);
+    end
     
+%         %find the line between the two intersections
+%     [ linex, liney ] = liner([C_interx(1),C_intery(1)], [C_interx(2),C_intery(2)]);
+    
+    
+    closeToDevArray = [closeToDevArray; closeToDev];
     %find points where d1-d2=k*lambda
     d1=norm( device - closeToDev);
     d2=norm( device - [x_c_T(~(move-1)+1) y_c_T(~(move-1)+1)]);
@@ -112,10 +122,9 @@ for i=1:numel(inter)
         dist_ = norm([linex(k) liney(k)]-closeToDev);
 
         dif = abs(moddif - dist_);
-        if  dif < minr && norm([linex(k) liney(k)]-[x_c_T(move) y_c_T(move)])<=r
+        if  dif < minr %&& norm([linex(k) liney(k)]-[x_c_T(move) y_c_T(move)])<=r
             minr = dif;
             mulK = [linex(k) liney(k)];        
-            difw=dif;
         end
     end
     dC{inter(i),move}=[dC{inter(i),move} norm(mulK(size(mulK,1),:)- device)];
@@ -123,7 +132,7 @@ for i=1:numel(inter)
     %find the rest of the points where d1-d2==k*lambda
     for k=1:numel(linex)
         dist_ = norm([linex(k) liney(k)]-mulK(size(mulK,1),:));
-        if dist_> lambda-0.004 && dist_< lambda+0.004 && norm([linex(k) liney(k)]-[x_c_Ti(move) y_c_Ti(move)])<=r
+        if dist_> lambda-0.004 && dist_< lambda+0.004 %&& norm([linex(k) liney(k)]-[x_c_Ti(move) y_c_Ti(move)])<=r
             mulK = [mulK;linex(k) liney(k) ];
             dC{inter(i),move}=[dC{inter(i),move} norm(mulK(size(mulK,1),:)- device)];
         end
@@ -136,8 +145,10 @@ end
 
 
 
-
-
+if size(closeToDevArray,1)>2
+    polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+    [centrx,centry] = centroid(polyin);
+end
 
 
 
@@ -152,7 +163,7 @@ abs(P_Transfered);
 figure
 surf(Y,X,abs(P_Transfered));
 hold on
-
+plot(centrx,centry, 'm*','LineWidth',10);
     
 %plot the devices positions
 
@@ -177,7 +188,7 @@ end
 hold on
 
 %plot the circles for possible positions
-colors=["w-","g-","r-","y-","o-"];
+colors=["w-","g-","r-","m-","b-"];
 for k=1:numel(inter)
 for i=1:numel(dC{inter(k),move})
     th = 0:step:2*pi+step;

@@ -35,7 +35,7 @@ nPoints = 15;
 minAllowableDistance = r;
 
 %find random devices positions
-%[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
@@ -73,7 +73,8 @@ inter = intersect(C{1},C{2});
 closeToDevArray=[];
 for i=1:numel(inter)
     %dokimastiko
-    device1 = [locDev(1,inter(1)) locDev(2,inter(1))];   
+    device1 = [locDev(1,inter(1)) locDev(2,inter(1))];
+    
     device = [locDev(1,inter(i)) locDev(2,inter(i))];
     
 	d1=norm( device1 - [x_c_T(1) y_c_T(1)]);
@@ -172,19 +173,17 @@ for i=1:numel(inter)
                 end
             end
         end
-
+        m=max(errors);
+        minE=10^3;
+        for er=1:length(errors)
+            if m(1,1)==errors(er,1) && errors(er,2)<minE
+                minE=errors(er,2);
+                numE=er;
+            end
+        end   
+        x_c_T(move)=intersections(numE,1);
+        y_c_T(move)=intersections(numE,2);
 end
-
-m=max(errors);
-minE=10^3;
-for er=1:length(errors)
-    if m(1,1)==errors(er,1) && errors(er,2)<minE
-        minE=errors(er,2);
-        numE=er;
-    end
-end   
-x_c_T(move)=intersections(numE,1);
-y_c_T(move)=intersections(numE,2);
 
 
 polyin=[];
@@ -234,24 +233,24 @@ end
 hold on
 
 %plot the circles for possible positions
-% colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
-% for k=1:numel(inter)
-%     for i=1:numel(dC{inter(k),move})
-%         th = 0:step:2*pi+step;
-%         xunit = dC{inter(k),move}(i) * cos(th) + locDev(1,inter(k));
-%         yunit = dC{inter(k),move}(i) * sin(th) + locDev(2,inter(k));
-% 
-%         %check for points outside the plane
-%         for j=1:numel(xunit)
-%             if xunit(j)<0 xunit(j)=0;
-%             elseif xunit(j)>stopx xunit(j)=stopx;end
-% 
-%             if yunit(j)<0 yunit(j)=0;
-%             elseif yunit(j)>stopy yunit(j)=stopy;end
-%         end
-%         plot(xunit, yunit,colors(k),'LineWidth',1.5);
-%     end
-% end
+colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
+for k=1:numel(inter)
+    for i=1:numel(dC{inter(k),move})
+        th = 0:step:2*pi+step;
+        xunit = dC{inter(k),move}(i) * cos(th) + locDev(1,inter(k));
+        yunit = dC{inter(k),move}(i) * sin(th) + locDev(2,inter(k));
+
+        %check for points outside the plane
+        for j=1:numel(xunit)
+            if xunit(j)<0 xunit(j)=0;
+            elseif xunit(j)>stopx xunit(j)=stopx;end
+
+            if yunit(j)<0 yunit(j)=0;
+            elseif yunit(j)>stopy yunit(j)=stopy;end
+        end
+        plot(xunit, yunit,colors(k),'LineWidth',1.5);
+    end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

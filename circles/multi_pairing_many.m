@@ -17,14 +17,17 @@ step = 0.05;
 lambda = 0.3;
 
 %centers of charger placement areas
+num_chargers = 5;
 x_c_T = [ 2.5 2.5 1 6 4 ];
 y_c_T = [ 2.1 4.5 1 5 7];
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
 
-x_c_T = 10*rand(4,1);
+
+num_chargers = 6;
+x_c_T = 10*rand(num_chargers,1);
 x_c_T = x_c_T - mod(x_c_T,0.05);
-y_c_T = 10*rand(4,1);
+y_c_T = 10*rand(num_chargers,1);
 y_c_T = y_c_T - mod(y_c_T,0.05);
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
@@ -150,11 +153,16 @@ while sum(chargers_remained==0)~=length(x_c_T)
     [~,pos]=sort(inter_dist,'ascend');
     inter = inter(pos);
 
-    plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
-    plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
+%     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
+%     if numel(inter)>1
+%         plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
+%     end
     
     pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
-
+    found=[];
+    
+    inter_pair_num = (numel(inter)*(numel(inter)-1))/2;
+    total_errors = zeros(inter_pair_num,4);
     for i=1:numel(inter)
 
         device = [locDev(1,inter(i)) locDev(2,inter(i))];
@@ -222,55 +230,81 @@ while sum(chargers_remained==0)~=length(x_c_T)
             end
         end
         
-            if i==2
-                intersections = [];
-                x1  = locDev(1,inter(1));
-                y1  = locDev(2,inter(1));        
-                x2  = locDev(1,inter(2));
-                y2  = locDev(2,inter(2));
+            
+            
+            if i>=2
+                for j=1:i-1
+                    intersections = [];
+                    x1  = locDev(1,inter(j));
+                    y1  = locDev(2,inter(j));        
+                    x2  = locDev(1,inter(i));
+                    y2  = locDev(2,inter(i));
 
-                for c2 = 1:size(dCradius{inter(2),x_new},2)
-                    r2 = dCradius{inter(2),x_new}(c2);
-                    for c1 = 1:size(dCradius{inter(1),x_new},2)
-                        r1 = dCradius{inter(1),x_new}(c1);            
-                        [xout,yout] = circcirc(x1,y1,r1,x2,y2,r2);
-                        for s=1:numel(xout)
-                            if norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r
-                                intersections = [intersections; xout(s) yout(s)];
+                    for c2 = 1:size(dCradius{inter(i),x_new},2)
+                        r2 = dCradius{inter(i),x_new}(c2);
+                        for c1 = 1:size(dCradius{inter(j),x_new},2)
+                            r1 = dCradius{inter(j),x_new}(c1);            
+                            [xout,yout] = circcirc(x1,y1,r1,x2,y2,r2);
+                            for s=1:numel(xout)
+                                if norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r
+                                    intersections = [intersections; xout(s) yout(s)];
+                                end
                             end
                         end
                     end
-                end
-                errors=zeros(size(intersections,1),2);
-            elseif i>=3
-                x3p  = locDev(1,inter(i));
-                y3p  = locDev(2,inter(i));     
-                for c3p = 1:size(dCradius{inter(i),x_new},2)
-                    r3p = dCradius{inter(i),x_new}(c3p); 
-                    for s=1:size(intersections,1)
-                       interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
-                       if abs(interToDev-r3p)<lambda/5
-                            errors(s,1)= errors(s,1)+1;
-                            errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
-                       else
-                            %error(s,i)=0;
-                       end
+                    
+                    errors=zeros(size(intersections,1),2);
+                    for k=1:numel(inter)
+                        if inter(k)~=inter(i) && inter(k)~=inter(j)
+                            x3p  = locDev(1,inter(k));
+                            y3p  = locDev(2,inter(k));     
+                            for c3p = 1:size(dCradius{inter(k),x_new},2)
+                                r3p = dCradius{inter(k),x_new}(c3p); 
+                                for s=1:size(intersections,1)
+                                   interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
+                                   if abs(interToDev-r3p)<lambda/5
+                                        errors(s,1)= errors(s,1)+1;
+                                        errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
+                                   else
+                                        %error(s,i)=0;
+                                   end
+                                end
+                            end
+                        end
+                    end
+                    m=max(errors(:,1));
+                    minE=10^3;
+                    for er=1:size(errors,1)
+                        if m(1,1)==errors(er,1) && errors(er,2)<minE
+                            minE=errors(er,2);
+                            numE=er;
+                        end
+                    end 
+                    it=i+j-1;
+                    if ~isempty(intersections)
+                        total_errors(it,1)=intersections(numE,1);
+                        total_errors(it,2)=intersections(numE,2);
+                        total_errors(it,3)=errors(numE,1);
+                        total_errors(it,4)=errors(numE,2);
                     end
                 end
+       
             end
-
     end
-
-    m=max(errors);
+    m=max(total_errors(:,3));
     minE=10^3;
-    for er=1:size(errors,1)
-        if m(1,1)==errors(er,1) && errors(er,2)<minE
-            minE=errors(er,2);
+    for er=1:size(total_errors,1)
+        if m==total_errors(er,3) && total_errors(er,4)<minE
+            minE=total_errors(er,4);
             numE=er;
         end
-    end   
-    x_c_T(x_new)=intersections(numE,1);
-    y_c_T(x_new)=intersections(numE,2);
+    end 
+   
+    
+%     if ~isempty(intersections)
+        x_c_T(x_new)=total_errors(numE,1);
+        y_c_T(x_new)=total_errors(numE,2);
+%     end
     %x=x_new;
 end
 
@@ -303,6 +337,31 @@ intial_sum_total_power_received = sum(itial_total_power_received);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%    Random Power  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for i=1:length(x_c_T)    
+    signx = rand(1)>0.5;
+    signy = rand(1)>0.5;
+    x_c_Tr(i) = x_c_T(i)+r*rand(1)*(-1)^signx;
+    y_c_Tr(i) = y_c_T(i)+r*rand(1)*(-1)^signy;
+end
+
+for i = 1:length(x_c_T)
+    for j = 1:size(locDev,2)
+        distance(i,j) = norm([x_c_Tr(i) y_c_Tr(i)] - [locDev(1,j) locDev(2,j)]);
+    end
+end
+
+random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+random_sum_total_power_received = sum(itial_total_power_received);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%    Final Power   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -317,9 +376,9 @@ final_total_power_received = circles_total_power(x_c_T, 1:size(locDev,2), distan
 final_sum_total_power_received = sum(final_total_power_received);
 
 
-gain=final_sum_total_power_received-intial_sum_total_power_received;
-realtive_gain = gain/intial_sum_total_power_received;
-fprintf('Realtive gain: : %f .%\n', realtive_gain*100);
+gain=final_sum_total_power_received-random_sum_total_power_received;
+realtive_gain = gain/random_sum_total_power_received;
+fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -347,7 +406,7 @@ end
 
 %plot the devices positions
 plot(locDev(1,:), locDev(2,:), 'g*');
-plot(plots(:,1), plots(:,2), 'r.');
+% plot(plots(:,1), plots(:,2), 'r.');
 
 %plot the placement areas
 for i=1:numel(x_c_Ti)

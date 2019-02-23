@@ -17,14 +17,17 @@ step = 0.05;
 lambda = 0.3;
 
 %centers of charger placement areas
+num_chargers = 5;
 x_c_T = [ 2.5 2.5 1 6 4 ];
 y_c_T = [ 2.1 4.5 1 5 7];
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
 
-x_c_T = 10*rand(6,1);
+
+num_chargers = 6;
+x_c_T = 10*rand(num_chargers,1);
 x_c_T = x_c_T - mod(x_c_T,0.05);
-y_c_T = 10*rand(6,1);
+y_c_T = 10*rand(num_chargers,1);
 y_c_T = y_c_T - mod(y_c_T,0.05);
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
@@ -149,10 +152,11 @@ while sum(chargers_remained==0)~=length(x_c_T)
     end
     [~,pos]=sort(inter_dist,'ascend');
     inter = inter(pos);
-
+   
     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
-    plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
-    
+    if numel(inter)>1
+        plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
+    end
     pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
 
     for i=1:numel(inter)
@@ -261,7 +265,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
 
     end
 
-    m=max(errors);
+    m=max(errors(:,1));
     minE=10^3;
     for er=1:size(errors,1)
         if m(1,1)==errors(er,1) && errors(er,2)<minE
@@ -269,8 +273,10 @@ while sum(chargers_remained==0)~=length(x_c_T)
             numE=er;
         end
     end   
-    x_c_T(x_new)=intersections(numE,1);
-    y_c_T(x_new)=intersections(numE,2);
+    if ~isempty(intersections)
+        x_c_T(x_new)=intersections(numE,1);
+        y_c_T(x_new)=intersections(numE,2);
+    end
     %x=x_new;
 end
 
@@ -303,6 +309,31 @@ intial_sum_total_power_received = sum(itial_total_power_received);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%    Random Power  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for i=1:length(x_c_T)    
+    signx = rand(1)>0.5;
+    signy = rand(1)>0.5;
+    x_c_Tr(i) = x_c_T(i)+r*rand(1)*(-1)^signx;
+    y_c_Tr(i) = y_c_T(i)+r*rand(1)*(-1)^signy;
+end
+
+for i = 1:length(x_c_T)
+    for j = 1:size(locDev,2)
+        distance(i,j) = norm([x_c_Tr(i) y_c_Tr(i)] - [locDev(1,j) locDev(2,j)]);
+    end
+end
+
+random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+random_sum_total_power_received = sum(itial_total_power_received);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%    Final Power   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -317,9 +348,9 @@ final_total_power_received = circles_total_power(x_c_T, 1:size(locDev,2), distan
 final_sum_total_power_received = sum(final_total_power_received);
 
 
-gain=final_sum_total_power_received-intial_sum_total_power_received;
-realtive_gain = gain/intial_sum_total_power_received;
-fprintf('Realtive gain: : %f .\%\n', realtive_gain*100);
+gain=final_sum_total_power_received-random_sum_total_power_received;
+realtive_gain = gain/random_sum_total_power_received;
+fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

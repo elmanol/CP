@@ -202,17 +202,17 @@ for i=1:numel(inter)
                                 if i==2
                                     length()
                                  
+                                end
                             end
                         end
                     end
+                    errors=zeros(size(intersections,1),2);
+
                 end
-                errors=zeros(size(intersections,1),2);
-
             end
-        end
 
+       end
 end
-
 
 plot(intersections(:,1),intersections(:,2),"m.");
 

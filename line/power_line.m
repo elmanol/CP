@@ -1,13 +1,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%  Line Charger Placement %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+num_iterations=400;
+iter_step=100;
+more=0;
+neigh_size=int16(num_iterations/iter_step);
+neigh_gain = zeros(1,neigh_size);
 
-
-
+neigh_radius=1;
+u=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%   Initializiations  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for iteretions=1:500
+for iterations=1:num_iterations
+    if mod(iterations,iter_step)==0 && iterations~=num_iterations
+        more=more+1;
+    end
 
 %plane bounds
 stopx = 10;
@@ -34,10 +42,10 @@ nDev=9; %an to allaksw allazw kai to x_c_R
 minAllowableDistance = 3*lambda/2;
 
 %find random devices positions
-% [locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
-% x_c_R = locDev(1,:);
-% y_c_R = locDev(2,:);
-nDev = length(x_c_R)
+[locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+x_c_R = locDev(1,:);
+y_c_R = locDev(2,:);
+nDev = length(x_c_R);
 
 % [x_c_T,y_c_T, x_c_R,y_c_R,distance] = deployment(5, 10, stopx,lambda)
 for i = 1:length(x_c_T)
@@ -54,7 +62,7 @@ init_total_power_received = sum(total_power( x_c_T,[1:nDev],distance,lambda));
 C=cell(1,length(x_c_T));
 for i=1:length(x_c_T)
     for j=1:length(x_c_R)
-        if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< 2
+        if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+more
            C{i}=[C{i} j];
         end
     end 
@@ -104,12 +112,13 @@ while(abs(past_power-final_total_power_received)>0.0001)
     end
 %end
     past_power = final_total_power_received;
-    final_total_power_received = sum(total_power( x_c_T,[1:nDev],distance,lambda))
-    repeats=repeats+1
-end
-
-gain = gain+final_total_power_received - init_total_power_received;
+    final_total_power_received = sum(total_power( x_c_T,[1:nDev],distance,lambda));
 
 end
+    neigh_gain(more+1) = neigh_gain(more+1) + final_total_power_received;
+    
+  gain = gain+final_total_power_received - init_total_power_received;
 
-gain_mean = gain/iteretions;
+end
+plot([1:neigh_size],neigh_gain,"g*");
+%gain_mean = gain/iterations;

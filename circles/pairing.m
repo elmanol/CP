@@ -23,19 +23,19 @@ x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
 
 %radius of charger placement areas
-r = 4*lambda;
+r = 2*lambda;
 
 %charger radius
 r_c = 2.5;
 
 %number of devices
-nPoints = 15;
+nPoints = 12;
 
 %minimum allowed distance from the chargers
 minAllowableDistance = r;
 
 %find random devices positions
-%[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
@@ -68,9 +68,49 @@ for i=1:length(locDev)
     end
 end
 
+
+
+
+
+
+
+
+
+move=1;
+
 %find the devices that are in the range of both chargers
 inter = intersect(C{1},C{2});
 closeToDevArray=[];
+
+for i=1:numel(inter)
+    interi=inter(i);
+    coefficients = polyfit([locDev(1,interi) x_c_Ti(2)], [locDev(2,interi) y_c_Ti(2)], 1);
+    a = coefficients (1);
+    b = coefficients (2);
+    [C_interx, C_intery] = linecirc(a,b,x_c_Ti(2),y_c_Ti(2),r);
+    minc=10^3;
+    for j=1:numel(C_interx) 
+        clos=norm([C_interx(j) C_intery(j)]-  [x_c_Ti(2) y_c_Ti(2)]);
+        if clos<minc
+           minc = clos;
+           iterator=j;
+        end
+    end
+    closeToDev=[C_interx(iterator),C_intery(iterator)];
+    closeToDevArray = [closeToDevArray; closeToDev];
+end
+
+polyin1=[];
+if size(closeToDevArray,1)>2
+    polyin1 = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+    [centrx1,centry1] = centroid(polyin1);
+    x_c_T(2)=centrx1;
+    y_c_T(2)=centry1;
+end
+closeToDevArray=[];
+
+
+
 for i=1:numel(inter)
     %dokimastiko
     device1 = [locDev(1,inter(1)) locDev(2,inter(1))];   
@@ -79,6 +119,7 @@ for i=1:numel(inter)
 	d1=norm( device1 - [x_c_T(1) y_c_T(1)]);
     d2=norm( device1 - [x_c_T(2) y_c_T(2)]);
     move=(d1>d2)+1;
+    move=1;
 
     %find the line intersecting both the device and the charger
     coefficients = polyfit([device(1) x_c_Ti(move)], [device(2) y_c_Ti(move)], 1);
@@ -163,7 +204,7 @@ for i=1:numel(inter)
                 r3p = dC{inter(i),move}(c3p); 
                 for s=1:size(intersections,1)
                    interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
-                   if abs(interToDev-r3p)<lambda/4
+                   if abs(interToDev-r3p)<lambda/5
                         errors(s,1)= errors(s,1)+1;
                         errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
                    else
@@ -177,7 +218,7 @@ end
 
 m=max(errors);
 minE=10^3;
-for er=1:length(errors)
+for er=1:size(errors,1)
     if m(1,1)==errors(er,1) && errors(er,2)<minE
         minE=errors(er,2);
         numE=er;
@@ -207,13 +248,17 @@ end
 abs(P_Transfered);
 figure
 surf(Y,X,abs(P_Transfered));
+
+
 hold on
 if ~isempty(polyin)
     plot(centrx,centry, 'm*','LineWidth',10);
-end    
-%plot the devices positions
+end  
 
-plot(locDev(1,:), locDev(2,:), 'g*');
+%plot the devices positions
+plot(locDev(1,:), locDev(2,:), 'g.');
+plot(locDev(1,inter(1)), locDev(2,inter(1)), 'r.');
+plot(locDev(1,inter(2)), locDev(2,inter(2)), 'y.');
 
 %plot the placement areas
 for i=1:numel(x_c_Ti)

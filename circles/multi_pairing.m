@@ -46,8 +46,9 @@ minAllowableDistance = r;
 
 %find random devices positions
 [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
-%  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
-%      7.9500    3.8000    5.3500    9.4000    5.5000];
+%  
+locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
+      7.9500    3.8000    5.3500    9.4000    5.5000];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -142,7 +143,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
     
     inter = intersect(C{x},C{x_new});
 
-    %sort the chargers according their distance to chrgers
+    %sort the chargers according their distance to chargers
     inter_dist = zeros(1,numel(inter));
     for i=1:numel(inter)
          x1 = norm([x_c_T(x) y_c_T(x)]- [locDev(1,inter(i)) locDev(1,inter(i))]);

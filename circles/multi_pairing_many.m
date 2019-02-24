@@ -17,20 +17,20 @@ step = 0.05;
 lambda = 0.3;
 
 %centers of charger placement areas
-num_chargers = 5;
-x_c_T = [ 2.5 2.5 1 6 4 ];
-y_c_T = [ 2.1 4.5 1 5 7];
-x_c_Ti = x_c_T;
-y_c_Ti = y_c_T;
-
-
-num_chargers = 6;
-x_c_T = 10*rand(num_chargers,1);
-x_c_T = x_c_T - mod(x_c_T,0.05);
-y_c_T = 10*rand(num_chargers,1);
-y_c_T = y_c_T - mod(y_c_T,0.05);
-x_c_Ti = x_c_T;
-y_c_Ti = y_c_T;
+% num_chargers = 5;
+% x_c_T = [ 2.5 2.5 1 6 4 ];
+% y_c_T = [ 2.1 4.5 1 5 7];
+% x_c_Ti = x_c_T;
+% y_c_Ti = y_c_T;
+% 
+% 
+% num_chargers = 6;
+% x_c_T = 10*rand(num_chargers,1);
+% x_c_T = x_c_T - mod(x_c_T,0.05);
+% y_c_T = 10*rand(num_chargers,1);
+% y_c_T = y_c_T - mod(y_c_T,0.05);
+% x_c_Ti = x_c_T;
+% y_c_Ti = y_c_T;
 
 %radius of charger placement areas
 r = 2*lambda;
@@ -45,7 +45,7 @@ nPoints = 15;
 minAllowableDistance = r;
 
 %find random devices positions
-[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+% [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
@@ -173,12 +173,18 @@ while sum(chargers_remained==0)~=length(x_c_T)
 
 
         %find the line intersecting both the device and the charger
-        coefficients = polyfit([device(1) x_c_Ti(x_new)], [device(2) y_c_Ti(x_new)], 1);
-        a = coefficients (1);
-        b = coefficients (2);
-
-        %find the intersections between the line and the circle
-        [C_interx, C_intery] = linecirc(a,b,x_c_Ti(x_new),y_c_Ti(x_new),r);
+        %if line is not vertical
+        if  x_c_Ti(x_new)~=device(1)
+            coefficients = polyfit([device(1) x_c_Ti(x_new)], [device(2) y_c_Ti(x_new)], 1);
+            a = coefficients (1);
+            b = coefficients (2);
+            %find the intersections between the line and the circle
+            [C_interx, C_intery] = linecirc(a,b,x_c_Ti(x_new),y_c_Ti(x_new),r);
+        else
+            %in case the line is vertical
+            C_intery = [y_c_Ti(x_new)+r y_c_Ti(x_new)-r];
+            C_interx = [x_c_Ti(x_new) x_c_Ti(x_new)];
+        end
 
 
         %get the closest point on the line (and circle) to the device
@@ -231,15 +237,20 @@ while sum(chargers_remained==0)~=length(x_c_T)
         end
         
             
-            
+            %if i>=2 then we can create a pair of inter and find their
+            %circles intersections
             if i>=2
+                %find the intersection between inter(i) and every previous
+                %inter (inter(i-1),inter(i-2)...)
                 for j=1:i-1
                     intersections = [];
                     x1  = locDev(1,inter(j));
                     y1  = locDev(2,inter(j));        
                     x2  = locDev(1,inter(i));
                     y2  = locDev(2,inter(i));
-
+                    
+                    %get the intersections between inter(i) and inter(j)
+                    %into intersections vector
                     for c2 = 1:size(dCradius{inter(i),x_new},2)
                         r2 = dCradius{inter(i),x_new}(c2);
                         for c1 = 1:size(dCradius{inter(j),x_new},2)
@@ -253,6 +264,8 @@ while sum(chargers_remained==0)~=length(x_c_T)
                         end
                     end
                     
+                    %find the distances between the intersection points
+                    %and the rest of the circles. add them to errors
                     errors=zeros(size(intersections,1),2);
                     for k=1:numel(inter)
                         if inter(k)~=inter(i) && inter(k)~=inter(j)
@@ -272,15 +285,20 @@ while sum(chargers_remained==0)~=length(x_c_T)
                             end
                         end
                     end
+                    % find the best out of the intrersection points in
+                    % errors
                     m=max(errors(:,1));
                     minE=10^3;
                     for er=1:size(errors,1)
-                        if m(1,1)==errors(er,1) && errors(er,2)<minE
+                        if m(1,1)==errors(er,1) && errors(er,2)<minE %&& ~(errors(er,2)==0 && errors(er,1)==0)
                             minE=errors(er,2);
                             numE=er;
                         end
                     end 
-                    it=i+j-1;
+                    %if no good point is found
+                    if minE==10^3 numE=1; end
+                    
+                    it=i*(i-1)/2-i+1 +j;
                     if ~isempty(intersections)
                         total_errors(it,1)=intersections(numE,1);
                         total_errors(it,2)=intersections(numE,2);
@@ -291,7 +309,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
        
             end
     end
-    m=max(total_errors(:,3));
+    m=max(total_errors(:,3))
     minE=10^3;
     for er=1:size(total_errors,1)
         if m==total_errors(er,3) && total_errors(er,4)<minE

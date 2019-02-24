@@ -28,9 +28,10 @@ step = 0.05;
 lambda = 0.3;
 
 %centers of charger placement areas
-x_c_T = randi(10,1,10);%[ 0 4 1];
-y_c_T = randi(10,1,10);%[ 0 2 5];
-
+x_c_T = randi(5,1,10);%[ 0 4 1];
+y_c_T = randi(5,1,10);%[ 0 2 5];
+x_c_T = [ 2.5 2.5 1 6 4 ];
+y_c_T = [ 2.1 4.5 1 5 7];
 %devices positions
 locDevx=[3.5 3];
 locDevy=[0 0];

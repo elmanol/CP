@@ -2,7 +2,7 @@ function [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_
 
 counter = 0;
 
-while(counter<=nPoints)
+while(counter<=nPoints-1)
 	% Get a trial point.
     thisX = round(rand(1)*stopx*20,0)/20;
     thisY = round(rand(1)*stopy*20,0)/20;

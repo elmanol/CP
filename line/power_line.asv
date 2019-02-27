@@ -62,8 +62,12 @@ num_iterations=400;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%   Main  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%for iterations=1:num_iterations
+for iterations=1:num_iterations
 
+    
+    
+    
+    
     for i = 1:length(x_c_T)
         for j = 1:nDev
             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
@@ -179,14 +183,14 @@ num_iterations=400;
 
     neigh_gain(more+1) = neigh_gain(more+1) + final_total_power_received;
 
-    %gain = gain+final_total_power_received - init_total_power_received;
+    gain = gain+final_total_power_received - init_total_power_received;
 
 
     gain = final_total_power_received - init_total_power_received;
     realtive_gain = gain/init_total_power_received;
     fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
-%end
+end
 figure(11)
 plot(x_c_T,y_c_T,'og',  x_c_Ti,y_c_Ti,'ok',  x_c_R,y_c_R,'*r')
 xlabel('x(m)')

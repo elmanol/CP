@@ -17,23 +17,30 @@ step = 0.05;
 lambda = 0.3;
 
 %centers of charger placement areas
-num_chargers = 5;
-x_c_T = [ 2.5 2.5 1 6 4 ];
-y_c_T = [ 2.1 4.5 1 5 7];
-x_c_Ti = x_c_T;
-y_c_Ti = y_c_T;
+% num_chargers = 5;
+% x_c_T = [ 2.5 2.5 1 6 4 ];
+% y_c_T = [ 2.1 4.5 1 5 7];
+% x_c_Ti = x_c_T;
+% y_c_Ti = y_c_T;
 
 
+% num_chargers = 6;
+% x_c_T = 10*rand(num_chargers,1);
+% x_c_T = x_c_T - mod(x_c_T,0.05);
+% y_c_T = 10*rand(num_chargers,1);
+% y_c_T = y_c_T - mod(y_c_T,0.05);
+% x_c_Ti = x_c_T;
+% y_c_Ti = y_c_T;
+
+%grid placement
 num_chargers = 6;
-x_c_T = 10*rand(num_chargers,1);
-x_c_T = x_c_T - mod(x_c_T,0.05);
-y_c_T = 10*rand(num_chargers,1);
-y_c_T = y_c_T - mod(y_c_T,0.05);
+x_c_T = [3 6 9 3 6 9];
+y_c_T = [3 3 3 8 8 8];
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
 
 %radius of charger placement areas
-r = 2*lambda;
+r = 4*lambda;
 
 %charger radius
 r_c = 2.5;
@@ -44,11 +51,14 @@ nPoints = 15;
 %minimum allowed distance from the chargers
 minAllowableDistance = r;
 
+%set pairing way ('random' or 'closest')
+pairing_way='closest';
+
+
 %find random devices positions
 [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
-%  
-locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
-      7.9500    3.8000    5.3500    9.4000    5.5000];
+%  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
+%      7.9500    3.8000    5.3500    9.4000    5.5000];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,6 +80,9 @@ for i=1:length(locDev)
     dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
 end
 
+
+%find devices in each charger's radius
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 C=cell(1,length(x_c_T));
 for i=1:length(locDev)
     for j=1:length(x_c_T)
@@ -78,21 +91,28 @@ for i=1:length(locDev)
         end
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
-%get the devices that are in the range of C1
+%get a random charger x
 x=randi([1,length(x_c_T)]);
 x_range = C{x};
 closeToDevArray=[];
 
-%find the centroid of C1
+%find the centroid of x
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for i=1:numel(x_range)
     interi=x_range(i);
     coefficients = polyfit([locDev(1,interi) x_c_Ti(x)], [locDev(2,interi) y_c_Ti(x)], 1);
-    a = coefficients (1);
-    b = coefficients (2);
-    [C_interx, C_intery] = linecirc(a,b,x_c_Ti(x),y_c_Ti(x),r);
+    if  abs(x_c_Ti(x)-locDev(1,interi))>0.001
+        a = coefficients (1);
+        b = coefficients (2);
+        [C_interx, C_intery] = linecirc(a,b,x_c_Ti(x),y_c_Ti(x),r);
+    else
+        C_intery = [y_c_Ti(x)+r y_c_Ti(x)-r];
+        C_interx = [x_c_Ti(x) x_c_Ti(x)];
+    end
+    
     minc=10^3;
     for j=1:numel(C_interx) 
         clos=norm([C_interx(j) C_intery(j)]-  [x_c_Ti(x) y_c_Ti(x)]);
@@ -112,6 +132,11 @@ if size(closeToDevArray,1)>2
     x_c_T(x)=centrx1;
     y_c_T(x)=centry1;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
 closeToDevArray=[];
 x_new=-1;
 plots=[];
@@ -121,23 +146,42 @@ p=0;
 pairs=[];
 while sum(chargers_remained==0)~=length(x_c_T)
     
-    mind=10^3;
-    for i=1:length(chargers_remained)
-        c_iter1=chargers_remained(i);
-        distc1=0;
-        if c_iter1~=0
-            for j=1:length(chargers_remained)
-                c_iter0=chargers_remained(j);
-                if c_iter0==0 
-                    distc1 = norm([x_c_T(c_iter1) y_c_T(c_iter1)]- [x_c_T(j) y_c_T(j)]);
-                    if distc1 < mind     
-                       mind = distc1;
-                       x_new = c_iter1;
-                       x = j;
+    %gets the next closest charger for pairing 
+    %building a Minimum spanning tree
+    if strcmp(pairing_way,'closest')
+        
+        mind=10^3;
+        for i=1:length(chargers_remained)
+            c_iter1=chargers_remained(i);
+            distc1=0;
+            if c_iter1~=0
+                for j=1:length(chargers_remained)
+                    c_iter0=chargers_remained(j);
+                    if c_iter0==0 
+                        distc1 = norm([x_c_T(c_iter1) y_c_T(c_iter1)]- [x_c_T(j) y_c_T(j)]);
+                        if distc1 < mind     
+                           mind = distc1;
+                           x_new = c_iter1;
+                           x = j;
+                        end
                     end
                 end
             end
         end
+        
+    elseif strcmp(pairing_way,'random')
+       
+       %randomly find a charger that hasn't been used yet 
+       rand_iter = randi(length(chargers_remained),1);
+       while chargers_remained(rand_iter)==0
+            rand_iter = randi(length(chargers_remained),1);
+       end
+       x_new = rand_iter;
+       
+    else
+        
+        print('wrong pairing way selected');
+        
     end
     chargers_remained(x_new)=0;
     
@@ -153,15 +197,22 @@ while sum(chargers_remained==0)~=length(x_c_T)
     end
     [~,pos]=sort(inter_dist,'ascend');
     inter = inter(pos);
-   
-    plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
-    if numel(inter)>1
-        plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
-    end
+
+%     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
+%     if numel(inter)>1
+%         plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
+%     end
+    
     pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
-
+    found=[];
+    
+    inter_pair_num = (numel(inter)*(numel(inter)-1))/2;
+    total_errors = zeros(inter_pair_num,4);
+    
+    %for every device that is in the raius of both chargers 
     for i=1:numel(inter)
-
+        
+        %get the coordinates of the device
         device = [locDev(1,inter(i)) locDev(2,inter(i))];
 
 %         d1=norm( device1 - [x_c_T(x) y_c_T(x)]);
@@ -170,12 +221,18 @@ while sum(chargers_remained==0)~=length(x_c_T)
 
 
         %find the line intersecting both the device and the charger
-        coefficients = polyfit([device(1) x_c_Ti(x_new)], [device(2) y_c_Ti(x_new)], 1);
-        a = coefficients (1);
-        b = coefficients (2);
-
-        %find the intersections between the line and the circle
-        [C_interx, C_intery] = linecirc(a,b,x_c_Ti(x_new),y_c_Ti(x_new),r);
+        %if line is not vertical
+        if  abs(x_c_Ti(x_new)-device(1))>0.001
+            coefficients = polyfit([device(1) x_c_Ti(x_new)], [device(2) y_c_Ti(x_new)], 1);
+            a = coefficients (1);
+            b = coefficients (2);
+            %find the intersections between the line and the circle
+            [C_interx, C_intery] = linecirc(a,b,x_c_Ti(x_new),y_c_Ti(x_new),r);
+        else
+            %in case the line is vertical
+            C_intery = [y_c_Ti(x_new)+r y_c_Ti(x_new)-r];
+            C_interx = [x_c_Ti(x_new) x_c_Ti(x_new)];
+        end
 
 
         %get the closest point on the line (and circle) to the device
@@ -216,6 +273,8 @@ while sum(chargers_remained==0)~=length(x_c_T)
                 mulK = [linex(k) liney(k)];        
             end
         end
+       
+        
         dCradius{inter(i),x_new}=[dCradius{inter(i),x_new} norm(mulK(size(mulK,1),:)- device)];
 
         %find the rest of the points where d1-d2==k*lambda
@@ -227,59 +286,86 @@ while sum(chargers_remained==0)~=length(x_c_T)
             end
         end
         
-            if i==2
-                intersections = [];
-                x1  = locDev(1,inter(1));
-                y1  = locDev(2,inter(1));        
-                x2  = locDev(1,inter(2));
-                y2  = locDev(2,inter(2));
+        %if there is only one device in the radius of the two chargers,
+        %we must choose the point on the first circle that is the closest 
+        %to the device
+        if length(inter)==1
+            mul=1;
+            while mulK(mul,1)<0 || mulK(mul,1)>stopx || mulK(mul,2)<0 || mulK(mul,2)>stopy 
+                mul=mul+1;
+            end
+        	x_c_T(x_new)=mulK(mul,1);
+            y_c_T(x_new)=mulK(mul,2);
+            continue
+        end
+        
+            
+        if i==2
+            intersections = [];
+            x1  = locDev(1,inter(1));
+            y1  = locDev(2,inter(1));        
+            x2  = locDev(1,inter(2));
+            y2  = locDev(2,inter(2));
 
-                for c2 = 1:size(dCradius{inter(2),x_new},2)
-                    r2 = dCradius{inter(2),x_new}(c2);
-                    for c1 = 1:size(dCradius{inter(1),x_new},2)
-                        r1 = dCradius{inter(1),x_new}(c1);            
-                        [xout,yout] = circcirc(x1,y1,r1,x2,y2,r2);
-                        for s=1:numel(xout)
-                            if norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r
-                                intersections = [intersections; xout(s) yout(s)];
-                            end
+            for c2 = 1:size(dCradius{inter(2),x_new},2)
+                r2 = dCradius{inter(2),x_new}(c2);
+                for c1 = 1:size(dCradius{inter(1),x_new},2)
+                    r1 = dCradius{inter(1),x_new}(c1);            
+                    [xout,yout] = circcirc(x1,y1,r1,x2,y2,r2);
+                    for s=1:numel(xout)
+                        if (norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r && ...
+                            xout(s)>0 && xout(s)<stopx && yout(s)>0 && yout(s)<stopy)
+                            intersections = [intersections; xout(s) yout(s)];
                         end
                     end
                 end
-                errors=zeros(size(intersections,1),2);
-            elseif i>=3
-                x3p  = locDev(1,inter(i));
-                y3p  = locDev(2,inter(i));     
-                for c3p = 1:size(dCradius{inter(i),x_new},2)
-                    r3p = dCradius{inter(i),x_new}(c3p); 
-                    for s=1:size(intersections,1)
-                       interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
-                       if abs(interToDev-r3p)<lambda/5
-                            errors(s,1)= errors(s,1)+1;
-                            errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
-                       else
-                            %error(s,i)=0;
-                       end
-                    end
+            end
+            errors=zeros(size(intersections,1),2);
+        elseif i>=3
+            x3p  = locDev(1,inter(i));
+            y3p  = locDev(2,inter(i));     
+            for c3p = 1:size(dCradius{inter(i),x_new},2)
+                r3p = dCradius{inter(i),x_new}(c3p); 
+                for s=1:size(intersections,1)
+                   interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
+                   if abs(interToDev-r3p)<lambda/5
+                        errors(s,1)= errors(s,1)+1;
+                        errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
+                   else
+                        %error(s,i)=0;
+                   end
                 end
             end
-
-    end
-
-    m=max(errors(:,1));
-    minE=10^3;
-    for er=1:size(errors,1)
-        if m(1,1)==errors(er,1) && errors(er,2)<minE
-            minE=errors(er,2);
-            numE=er;
         end
-    end   
-    if ~isempty(intersections)
-        x_c_T(x_new)=intersections(numE,1);
-        y_c_T(x_new)=intersections(numE,2);
+
+
+
+        m=max(errors(:,1));
+        minE=10^3;
+        for er=1:size(errors,1)
+            if m(1,1)==errors(er,1) && errors(er,2)<minE
+                minE=errors(er,2);
+                numE=er;
+            end
+        end   
+        if ~isempty(intersections)
+            x_c_T(x_new)=intersections(numE,1);
+            y_c_T(x_new)=intersections(numE,2);
+        else
+            fprintf("no intersections\n")
+        end
+    end %for inter
+
+    polyin=[];
+    if size(closeToDevArray,1)>2
+        polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+        [centrx,centry] = centroid(polyin);
     end
-    %x=x_new;
-end
+
+
+
+
+end %for charger
 
 polyin=[];
 if size(closeToDevArray,1)>2
@@ -349,8 +435,8 @@ final_total_power_received = circles_total_power(x_c_T, 1:size(locDev,2), distan
 final_sum_total_power_received = sum(final_total_power_received);
 
 
-gain=final_sum_total_power_received-random_sum_total_power_received;
-realtive_gain = gain/random_sum_total_power_received;
+gain=final_sum_total_power_received-intial_sum_total_power_received;
+realtive_gain = gain/intial_sum_total_power_received;
 fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -379,7 +465,7 @@ end
 
 %plot the devices positions
 plot(locDev(1,:), locDev(2,:), 'g*');
-plot(plots(:,1), plots(:,2), 'r.');
+% plot(plots(:,1), plots(:,2), 'r.');
 
 %plot the placement areas
 for i=1:numel(x_c_Ti)
@@ -420,6 +506,23 @@ hold on
 % end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
 
 
 

@@ -52,9 +52,9 @@ y_c_R = locDev(2,:);
 % nDev = length(x_c_R);
 
 
-num_iterations=400;
+num_iterations=100;
 % iter_step=100;
-% % more=0;
+
 % neigh_size=int16(num_iterations/iter_step);
 % neigh_gain = zeros(1,neigh_size);
     
@@ -62,7 +62,11 @@ num_iterations=400;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%   Main  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%for iterations=1:num_iterations
+gain=0;
+for iteration=1:num_iterations
+    
+    x_c_T = x_c_Ti;
+    y_c_T = y_c_Ti;
 
     for i = 1:length(x_c_T)
         for j = 1:nDev
@@ -78,7 +82,7 @@ num_iterations=400;
     C=cell(1,length(x_c_T));
     for i=1:length(x_c_T)
         for j=1:length(x_c_R)
-            if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+more
+            if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius
                C{i}=[C{i} j];
             end
         end 
@@ -93,7 +97,7 @@ num_iterations=400;
     past_power = 1;
     repeats=0;
 
-    powers=[];
+    %powerss=[];
 
     total_power_all_chargers=0;
 
@@ -173,25 +177,34 @@ num_iterations=400;
     %     past_power = final_total_power_received;
         final_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
-    %     powers=[powers;final_total_power_received];
+    %     powerss=[powerss;final_total_power_received];
     end
 
 
-    neigh_gain(more+1) = neigh_gain(more+1) + final_total_power_received;
+    gain(iteration) =  final_total_power_received;
 
     %gain = gain+final_total_power_received - init_total_power_received;
 
 
-    gain = final_total_power_received - init_total_power_received;
-    realtive_gain = gain/init_total_power_received;
-    fprintf('Realtive gain: : %f .\n', realtive_gain*100);
+%     gain = final_total_power_received - init_total_power_received;
+%     realtive_gain = gain/init_total_power_received;
+%     fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
-%end
+end
+
 figure(11)
-plot(x_c_T,y_c_T,'og',  x_c_Ti,y_c_Ti,'ok',  x_c_R,y_c_R,'*r')
-xlabel('x(m)')
-ylabel('y(m)')
-legend('Chargers Final','Chargers Initial','Nodes','Location','northoutside','Orientation','horizontal')
+plot(1:num_iterations,gain ,'r-')
+xlabel('Iteration')
+ylabel('Gain')
+legend('Gain','northoutside','Orientation','horizontal')
+
+
+
+% figure(12)
+% plot(x_c_T,y_c_T,'og',  x_c_Ti,y_c_Ti,'ok',  x_c_R,y_c_R,'*r')
+% xlabel('x(m)')
+% ylabel('y(m)')
+% legend('Chargers Final','Chargers Initial','Nodes','Location','northoutside','Orientation','horizontal')
 
 
          

@@ -51,8 +51,8 @@ num_iterations=100;
 % % more=0;
 % neigh_size=int16(num_iterations/iter_step);
 % neigh_gain = zeros(1,neigh_size);
-neigh_gain=zeros(3,num_iterations);
-
+neigh_gain=zeros(4);
+sum_init_total_power_received = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%   Main  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,7 +92,7 @@ for iterations=1:num_iterations
     C=cell(1,length(x_c_T));
     for i=1:length(x_c_T)
         for j=1:length(x_c_R)
-            if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+more
+            if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius
                C{i}=[C{i} j];
             end
         end 
@@ -190,11 +190,10 @@ for iterations=1:num_iterations
     %     powers=[powers;final_total_power_received];
     end
 
-        gain = final_total_power_received - init_total_power_received;
-        realtive_gain = gain/init_total_power_received;
-
-
-        neigh_gain(1,iterations)=realtive_gain;
+%    gain = final_total_power_received;% - init_total_power_received;
+%     realtive_gain = gain/init_total_power_received;
+    
+    neigh_gain(1)=neigh_gain(1)+final_total_power_received;
     
   
     
@@ -207,15 +206,15 @@ for iterations=1:num_iterations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%   increased radius +1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
-    x_c_T = x_c_Ti;
-    y_c_T = y_c_Ti;
-
-    for i = 1:length(x_c_T)
-        for j = 1:nDev
-            distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
-        end
-    end
-    init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
+%     x_c_T = x_c_Ti;
+%     y_c_T = y_c_Ti;
+% 
+%     for i = 1:length(x_c_T)
+%         for j = 1:nDev
+%             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
+%         end
+%     end
+%     init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -324,11 +323,10 @@ for iterations=1:num_iterations
 
 
 
-        gain = final_total_power_received - init_total_power_received;
-        realtive_gain = gain/init_total_power_received;
-
-
-        neigh_gain(2,iterations)=realtive_gain;
+%    gain = final_total_power_received;% - init_total_power_received;
+%     realtive_gain = gain/init_total_power_received;
+    
+    neigh_gain(2)=neigh_gain(2)+final_total_power_received;
     
     
     
@@ -339,15 +337,15 @@ for iterations=1:num_iterations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%   increased radius +2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
-    x_c_T = x_c_Ti;
-    y_c_T = y_c_Ti;
-    
-    for i = 1:length(x_c_T)
-        for j = 1:nDev
-            distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
-        end
-    end
-    init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
+%     x_c_T = x_c_Ti;
+%     y_c_T = y_c_Ti;
+%     
+%     for i = 1:length(x_c_T)
+%         for j = 1:nDev
+%             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
+%         end
+%     end
+%     init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -456,10 +454,11 @@ for iterations=1:num_iterations
 
 
 
-    gain = final_total_power_received - init_total_power_received;
-    realtive_gain = gain/init_total_power_received;
+%    gain = final_total_power_received;% - init_total_power_received;
+%     realtive_gain = gain/init_total_power_received;
     
-    neigh_gain(3,iterations)=realtive_gain;
+    neigh_gain(3)=neigh_gain(3)+final_total_power_received;
+   
 
         
     
@@ -470,15 +469,15 @@ for iterations=1:num_iterations
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%   increased radius +3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    x_c_T = x_c_Ti;
-    y_c_T = y_c_Ti;
-    
-    for i = 1:length(x_c_T)
-        for j = 1:nDev
-            distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
-        end
-    end
-    init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
+%     x_c_T = x_c_Ti;
+%     y_c_T = y_c_Ti;
+%     
+%     for i = 1:length(x_c_T)
+%         for j = 1:nDev
+%             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
+%         end
+%     end
+%     init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -587,24 +586,27 @@ for iterations=1:num_iterations
 
 
 
-    gain = final_total_power_received - init_total_power_received;
-    realtive_gain = gain/init_total_power_received;
+%    gain = final_total_power_received;% - init_total_power_received;
+%     realtive_gain = gain/init_total_power_received;
     
-    neigh_gain(4,iterations)=realtive_gain;
+    neigh_gain(4)=neigh_gain(4)+final_total_power_received;
 
+    sum_init_total_power_received = sum_init_total_power_received+init_total_power_received;
+    
 end
 
 
-gain=[neigh_gain(1,iterations) neigh_gain(2,iterations) neigh_gain(3,iterations) neigh_gain(4,iterations)];
+gain=[sum_init_total_power_received neigh_gain(1) neigh_gain(2) neigh_gain(3) neigh_gain(4)]/num_iterations;
 br=bar(gain);
 br.FaceColor = 'flat';
+br.CData(1,:) = [0.45 0.45 0.44];
 br.CData(1,:) = [0 0.45 0.74];
 br.CData(2,:) = [0.85 0.33 0.1];
 br.CData(3,:) = [0.93 0.69 0.13];
 br.CData(4,:) = [0.4 0.6 0.7];
 xlabel('Radius length') % x-axis label
-ylabel('Relative Gain') % y-axis label
+ylabel('Mean Gain') % y-axis label
 
 
-set(gca,'xticklabel',{'2','3','4','5'})
+set(gca,'xticklabel',{'initial',neigh_radius,neigh_radius+1,neigh_radius+2,neigh_radius+3})
 

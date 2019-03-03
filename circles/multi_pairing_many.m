@@ -27,7 +27,7 @@ lambda = 0.3;
 
 
 %radius of charger placement areas
-r = 3*lambda;
+r = 2*lambda;
 
 %charger radius
 r_c = 2.5;
@@ -36,7 +36,7 @@ r_c = 2.5;
 nPoints = 15;
 
 %minimum allowed distance from the chargers
-minAllowableDistance = r;
+minAllowableDistance = r%+lambda;
 
 %set pairing way ('random' or 'closest')
 pairing_way='closest';
@@ -75,11 +75,11 @@ y_c_Ti = y_c_T;
 dCradius = cell(length(locDev),length(x_c_T));
 
 %find devices initial power
-[Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-dev_power = zeros(1,length(locDev));
-for i=1:length(locDev)
-    dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
-end
+% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+% dev_power = zeros(1,length(locDev));
+% for i=1:length(locDev)
+%     dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
+% end
 
 
 %find devices in each charger's radius
@@ -128,10 +128,16 @@ end
 
 polyin1=[];
 if size(closeToDevArray,1)>2
-    polyin1 = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
-    [centrx1,centry1] = centroid(polyin1);
-    x_c_T(x)=centrx1;
-    y_c_T(x)=centry1;
+    polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+    [centrx1,centry1] = centroid(polyin);
+     x_c_T(x)=centrx1;
+     y_c_T(x)=centry1;      
+elseif isempty(closeToDevArray)
+     x_c_T(x)=x_c_Ti(x);
+     y_c_T(x)=y_c_Ti(x);
+elseif size(closeToDevArray,1)==2
+     x_c_T(x)=(closeToDevArray(1,1)+closeToDevArray(2,1))/2;
+     y_c_T(x)=(closeToDevArray(1,2)+closeToDevArray(2,2))/2;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -177,8 +183,13 @@ while sum(chargers_remained==0)~=length(x_c_T)
        while chargers_remained(rand_iter)==0
             rand_iter = randi(length(chargers_remained),1);
        end
-       x_new = rand_iter;
        
+       rand_iter_x = randi(length(chargers_remained),1);
+       while chargers_remained(rand_iter_x)==chargers_remained(rand_iter)
+            rand_iter_x = randi(length(chargers_remained),1);
+       end
+       x_new = rand_iter;
+       x=rand_iter_x;
     else
         
         print('wrong pairing way selected');
@@ -342,7 +353,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
                                 r3p = dCradius{inter(k),x_new}(c3p); 
                                 for s=1:size(intersections,1)
                                    interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
-                                   if abs(interToDev-r3p)<lambda/6
+                                   if abs(interToDev-r3p)<lambda/5
                                         errors(s,1)= errors(s,1)+1;
                                         errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
                                    else
@@ -389,19 +400,21 @@ while sum(chargers_remained==0)~=length(x_c_T)
         end 
 
 
-    %     if ~isempty(intersections)
+        if ~isempty(intersections)
             x_c_T(x_new)=total_errors(numE2,1);
             y_c_T(x_new)=total_errors(numE2,2);
-    %     end
-        %x=x_new;
+        else
+            continue
+        end
+
     end
 end
 
-polyin=[];
-if size(closeToDevArray,1)>2
-    polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
-    [centrx,centry] = centroid(polyin);
-end
+% polyin=[];
+% if size(closeToDevArray,1)>2
+%     polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+%     [centrx,centry] = centroid(polyin);
+% end
 
 % x_c_T(x_new)= 2.65 %centrx%mulK(2,1);
 % y_c_T(x_new)= 2%centry%mulK(2,2);

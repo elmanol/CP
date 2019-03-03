@@ -176,7 +176,7 @@ for iterations=1:num_iterations
     %     past_power = final_total_power_received;
         final_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
-    %     powerss=[powerss;final_total_power_received];
+    %     powerss=[powers;final_total_power_received];
     end
 
 
@@ -187,24 +187,22 @@ for iterations=1:num_iterations
 
     gain = final_total_power_received - init_total_power_received;
     realtive_gain = gain/init_total_power_received;
-%     fprintf('Realtive gain: : %f .\n', realtive_gain*100);
+    fprintf('Realtive gain: : %f .\n', realtive_gain*100);
     
     
     
-%     [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-%     [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
-%     abs(P_Transfered);
-%     figure
-%     surf(Y,X,abs(P_Transfered));
+    [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+    [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
+    abs(P_Transfered);
+    figure
+    surf(Y,X,abs(P_Transfered));
     final_power(iterations)= sum(total_power( x_c_T,1:nDev,distance,lambda));
-    x_c_T = x_c_Ti;
-    y_c_T = y_c_Ti;
 end
     
 hold on
 %plot the devices positions
-% plot(locDev(1,:), locDev(2,:), 'g*');
-% plot(points(:,1), points(:,2), 'r*');
+plot(locDev(1,:), locDev(2,:), 'g*');
+plot(points(:,1), points(:,2), 'r*');
 
 
 
@@ -215,4 +213,4 @@ hold on
 % legend('Chargers Final','Chargers Initial','Nodes','Location','northoutside','Orientation','horizontal')
 % 
 
-plot(1:num_iterations,final_power,'-g')         
+plot(final_power,num_iterations,'og',  x_c_Ti,y_c_Ti,'ok',  x_c_R,y_c_R,'*r')         

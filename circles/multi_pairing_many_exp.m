@@ -16,8 +16,18 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
+%centers of charger placement areas
+% num_chargers = 5;
+% x_c_T = [ 2.5 2.5 1 6 4 ];
+% y_c_T = [ 2.1 4.5 1 5 7];
+
+
+
+
+
+
 %radius of charger placement areas
-r = 2*lambda;
+r = 4*lambda;
 
 %charger radius
 r_c = 2.5;
@@ -32,28 +42,18 @@ minAllowableDistance = r+lambda;
 pairing_way='closest';
 
 
-%centers of charger placement areas
-
-% x_c_T = [ 2.5 2.5 1 6 4 ];
-% y_c_T = [ 2.1 4.5 1 5 7];
-
-
-% num_chargers = 6;
-% x_c_T = 10*rand(num_chargers,1);
-% x_c_T = x_c_T - mod(x_c_T,0.05);
-% y_c_T = 10*rand(num_chargers,1);
-% y_c_T = y_c_T - mod(y_c_T,0.05);
-
 %grid placement
 
-% x_c_T = [3 6 9 3 6 9];
-% y_c_T = [3 3 3 8 8 8];
+x_c_T = [3 6 9 3 6 9];
+y_c_T = [3 3 3 8 8 8];
 
 [x_c_T,y_c_T] = sparse_c(6,stopx,stopy,2*r);
 
 
+%save chargers initial positions
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
+
 
 
 %find random devices positions
@@ -74,13 +74,13 @@ y_c_Ti = y_c_T;
 %for each charger
 dCradius = cell(length(locDev),length(x_c_T));
 
-%find devices initial power
-% [~, ~,~, ~, ~,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+% %find devices initial power
+% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
 % dev_power = zeros(1,length(locDev));
 % for i=1:length(locDev)
 %     dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
 % end
-
+% 
 
 %find devices in each charger's radius
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -139,11 +139,14 @@ elseif size(closeToDevArray,1)==2
      x_c_T(x)=(closeToDevArray(1,1)+closeToDevArray(2,1))/2;
      y_c_T(x)=(closeToDevArray(1,2)+closeToDevArray(2,2))/2;
 end
+% hold on
+% plot(centrx,centry,"m*")
+% hold on
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-allint=[];
-polyy=[];
+
+
 closeToDevArray=[];
 x_new=-1;
 plots=[];
@@ -154,7 +157,7 @@ pairs=[];
 while sum(chargers_remained==0)~=length(x_c_T)
     
     %gets the next closest charger for pairing 
-    %building a Minimum spanning tree
+    %buildin a Minimum spanning tree
     if strcmp(pairing_way,'closest')
         
         mind=10^3;
@@ -201,19 +204,15 @@ while sum(chargers_remained==0)~=length(x_c_T)
 
     %sort the chargers according their distance to chargers
     inter_dist = zeros(1,numel(inter));
-    inter_counter=0;
-    intersections = [];
-    while isempty(intersections) && inter_counter<numel(inter)
     for i=1:numel(inter)
          x1 = norm([x_c_T(x) y_c_T(x)]- [locDev(1,inter(i)) locDev(2,inter(i))]);
          x2 = norm([x_c_T(x_new) y_c_T(x_new)]- [locDev(1,inter(i)) locDev(2,inter(i))]);
-         x_mean = x2;
+         x_mean = x1+x2;
          inter_dist(i) = x_mean;        
     end
     [~,pos]=sort(inter_dist,'ascend');
     inter = inter(pos);
-    inter = [inter inter(inter_counter+1)];
-    inter(inter_counter+1)=[];
+
 %     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
 %     if numel(inter)>1
 %         plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
@@ -224,8 +223,6 @@ while sum(chargers_remained==0)~=length(x_c_T)
     
     inter_pair_num = (numel(inter)*(numel(inter)-1))/2;
     total_errors = zeros(inter_pair_num,4);
-    
-    closeToDevArray=[];
     
     %for every device that is in the raius of both chargers 
     for i=1:numel(inter)
@@ -317,103 +314,111 @@ while sum(chargers_remained==0)~=length(x_c_T)
             continue
         end
         
+        
+        
             
-        if i==2
-            
-            x1  = locDev(1,inter(1));
-            y1  = locDev(2,inter(1));        
-            x2  = locDev(1,inter(2));
-            y2  = locDev(2,inter(2));
-
-            for c2 = 1:size(dCradius{inter(2),x_new},2)
-                r2 = dCradius{inter(2),x_new}(c2);
-                for c1 = 1:size(dCradius{inter(1),x_new},2)
-                    r1 = dCradius{inter(1),x_new}(c1);            
-                    [xout,yout] = circcirc(x1,y1,r1,x2,y2,r2);
-                    for s=1:numel(xout)
-                        if (norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r && ...
-                            xout(s)>0 && xout(s)<stopx && yout(s)>0 && yout(s)<stopy)
-                            intersections = [intersections; xout(s) yout(s)]
-                            allint = [allint; xout(s) yout(s)]
+            %if i>=2, we can create a pair of inter and find their
+            %circles' intersections
+            if i>=2
+                %find the intersection between inter(i) and every previous
+                %inter (inter(i-1),inter(i-2)...)
+                for j=1:i-1
+                    intersections = [];
+                    x1  = locDev(1,inter(j));
+                    y1  = locDev(2,inter(j));        
+                    x2  = locDev(1,inter(i));
+                    y2  = locDev(2,inter(i));
+                    
+                    %get the intersections between inter(i) and inter(j)
+                    %into intersections vector
+                    for c2 = 1:size(dCradius{inter(i),x_new},2)
+                        r2 = dCradius{inter(i),x_new}(c2);
+                        for c1 = 1:size(dCradius{inter(j),x_new},2)
+                            r1 = dCradius{inter(j),x_new}(c1);            
+                            [xout,yout] = circcirc(x1,y1,r1,x2,y2,r2);
+                            for s=1:numel(xout)
+                                if (norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r && ...
+                                	xout(s)>0 && xout(s)<stopx && yout(s)>0 && yout(s)<stopy)
+                                    intersections = [intersections; xout(s) yout(s)];
+                                end
+                            end
                         end
                     end
+                    
+                    %find the distances between the intersection points
+                    %and the rest of the circles. add them to errors
+                    errors=zeros(size(intersections,1),2);
+                    for k=1:numel(inter)
+                        if inter(k)~=inter(i) && inter(k)~=inter(j)
+                            x3p  = locDev(1,inter(k));
+                            y3p  = locDev(2,inter(k));     
+                            for c3p = 1:size(dCradius{inter(k),x_new},2)
+                                r3p = dCradius{inter(k),x_new}(c3p); 
+                                for s=1:size(intersections,1)
+                                   interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
+                                   if abs(interToDev-r3p)<lambda/6
+                                        errors(s,1)= errors(s,1)+1;
+                                        errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
+                                   else
+                                        %error(s,i)=0;
+                                   end
+                                end
+                            end
+                        end
+                    end
+                    % find the best out of the intrersection points in
+                    % errors
+                    m=max(errors(:,1));
+                    minE=10^3;
+                    for er=1:size(errors,1)
+                        if m==errors(er,1) && errors(er,2)<minE %&& ~(errors(er,2)==0 && errors(er,1)==0)
+                            minE=errors(er,2);
+                            numE=er;
+                        end
+                    end 
+                    %if no good point is found
+                    if minE==10^3 
+                        numE=1; 
+                    end
+                    
+                    it=i*(i-1)/2-i+1 +j;
+                    if ~isempty(intersections)
+                        total_errors(it,1)=intersections(numE,1);
+                        total_errors(it,2)=intersections(numE,2);
+                        total_errors(it,3)=errors(numE,1);
+                        total_errors(it,4)=errors(numE,2);
+                    end
                 end
+       
             end
-            errors=zeros(size(intersections,1),2);
-        elseif i>=3
-            x3p  = locDev(1,inter(i));
-            y3p  = locDev(2,inter(i));     
-            for c3p = 1:size(dCradius{inter(i),x_new},2)
-                r3p = dCradius{inter(i),x_new}(c3p); 
-                for s=1:size(intersections,1)
-                   interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
-                   if abs(interToDev-r3p)<lambda/5
-                        errors(s,1)= errors(s,1)+1/norm(device-[intersections(s,1) intersections(s,2)])^2;
-                        errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
-                   else
-                        %error(s,i)=0;
-                   end
-                end
+    end
+    if length(inter)>1
+        m2=max(total_errors(:,3));
+        minE2=10^3;
+        for er2=1:size(total_errors,1)
+            if m2==total_errors(er2,3) && total_errors(er2,4)<minE2
+                minE2=total_errors(er2,4);
+                numE2=er2;
             end
+        end 
+
+
+        if ~isempty(intersections)
+            x_c_T(x_new)=total_errors(numE2,1);
+            y_c_T(x_new)=total_errors(numE2,2);
+        else
+            continue
         end
 
-    end %for inter
+    end
 
-    m=max(errors(:,1));
-    minE=10^3;
-    for er=1:size(errors,1)
-        if m(1,1)==errors(er,1) && errors(er,2)<minE
-            minE=errors(er,2);
-            numE=er;
-        end
-    end   
-    
-    
-%     
-%     
-%     polyin=[];
-%     centrx=0;
-%     centry=0;
-%     if size(closeToDevArray,1)>2
-%         polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
-%         [centrx,centry] = centroid(polyin);
-%         polyy = [polyy; centrx centry];
-%     elseif isempty(closeToDevArray)
-%          x_c_T(x_new)=x_c_Ti(x_new);
-%          y_c_T(x_new)=y_c_Ti(x_new);
-%     elseif size(closeToDevArray,1)==2
-%          centrx=(closeToDevArray(1,1)+closeToDevArray(2,1))/2;
-%          centry=(closeToDevArray(1,2)+closeToDevArray(2,2))/2;
-%     end
-%     
-%     
-%     
-%     
-%     
-%         mdis = 10^3;
-%         for p=1:size(intersections,1)
-%             pdis = norm(intersections(p,:) - [centrx centry]);
-%             if pdis<mdis
-%                 mdis=pdis;
-%                 x_c_T(x_new)=intersections(p,1);
-%                 y_c_T(x_new)=intersections(p,2);  
-%             end
-%         end
-    
-    if ~isempty(intersections)
-        x_c_T(x_new)=intersections(numE,1);
-        y_c_T(x_new)=intersections(numE,2);
-    else
-        fprintf("no intersections\n")
-    end    
-        inter_counter=inter_counter+1;
-    end %while itersections is empty
+end
 
-
-
-end %for charger
-
-
+polyin=[];
+if size(closeToDevArray,1)>2
+    polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+    [centrx,centry] = centroid(polyin);
+end
 
 % x_c_T(x_new)= 2.65 %centrx%mulK(2,1);
 % y_c_T(x_new)= 2%centry%mulK(2,2);
@@ -457,7 +462,7 @@ for i = 1:length(x_c_T)
 end
 
 random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
-random_sum_total_power_received = sum(random_total_power_received);
+random_sum_total_power_received = sum(itial_total_power_received);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -500,17 +505,15 @@ figure
 surf(Y,X,abs(P_Transfered));
 
 
-% hold on
-% if ~isempty(polyin)
-%     plot(centrx,centry, 'm*','LineWidth',10);
-% end  
 hold on
+if ~isempty(polyin)
+    plot(centrx,centry, 'm*','LineWidth',10);
+end  
+
 %plot the devices positions
 plot(locDev(1,:), locDev(2,:), 'g*');
-hold on
-plot(allint(:,1), allint(:,2), 'r*');
 % plot(plots(:,1), plots(:,2), 'r.');
-hold on
+
 %plot the placement areas
 for i=1:numel(x_c_Ti)
     th = 0:step:2*pi+step;
@@ -527,19 +530,15 @@ for i=1:numel(x_c_Ti)
     end
     plot(xunit, yunit,"y-",'LineWidth',2);
 end
+hold on
 
-
-
-
-% hold on
-% % plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
-% % % plot the circles for possible positions
+%plot the circles for possible positions
 % colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
 % for k=1:numel(inter)
-%     for i=1:numel(dCradius{inter(k),x_new})
+%     for i=1:numel(dC{inter(k),x_new})
 %         th = 0:step:2*pi+step;
-%         xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
-%         yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
+%         xunit = dC{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
+%         yunit = dC{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
 % 
 %         %check for points outside the plane
 %         for j=1:numel(xunit)
@@ -554,23 +553,6 @@ end
 % end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
 
 
 

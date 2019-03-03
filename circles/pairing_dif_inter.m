@@ -102,10 +102,16 @@ end
 
 polyin1=[];
 if size(closeToDevArray,1)>2
-    polyin1 = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
-    [centrx1,centry1] = centroid(polyin1);
-    x_c_T(2)=centrx1;
-    y_c_T(2)=centry1;
+    polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
+    [centrx1,centry1] = centroid(polyin);
+     x_c_T(x)=centrx1;
+     y_c_T(x)=centry1;      
+elseif isempty(closeToDevArray)
+     x_c_T(x)=x_c_Ti(x);
+     y_c_T(x)=y_c_Ti(x);
+elseif size(closeToDevArray,1)==2
+     x_c_T(x)=(closeToDevArray(1,1)+closeToDevArray(2,1))/2;
+     y_c_T(x)=(closeToDevArray(1,2)+closeToDevArray(2,2))/2;
 end
 closeToDevArray=[];
 

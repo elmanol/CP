@@ -15,9 +15,11 @@ step = 0.05;
 
 %lambda
 lambda = 0.3;
+gainf=zeros(4,1);
+for iter=1:1
 
 %radius of charger placement areas
-r = 2*lambda;
+ri = 4*lambda;
 
 %charger radius
 r_c = 2.5;
@@ -26,7 +28,7 @@ r_c = 2.5;
 nPoints = 15;
 
 %minimum allowed distance from the chargers
-minAllowableDistance = r;
+minAllowableDistance = ri;
 
 %set pairing way ('random' or 'closest')
 pairing_way='closest';
@@ -49,7 +51,7 @@ pairing_way='closest';
 % x_c_T = [3 6 9 3 6 9];
 % y_c_T = [3 3 3 8 8 8];
 
-[x_c_T,y_c_T] = sparse_c(6,stopx,stopy,2*r);
+[x_c_T,y_c_T] = sparse_c(6,stopx,stopy,2*ri);
 
 
 x_c_Ti = x_c_T;
@@ -61,6 +63,12 @@ y_c_Ti = y_c_T;
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
+
+for rad_iter=1:4
+    x_c_T = x_c_Ti;
+    y_c_T = y_c_Ti;
+    
+    r = lambda + ri - rad_iter*lambda;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -75,11 +83,11 @@ y_c_Ti = y_c_T;
 dCradius = cell(length(locDev),length(x_c_T));
 
 %find devices initial power
-[~, ~,~, ~, ~,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-dev_power = zeros(1,length(locDev));
-for i=1:length(locDev)
-    dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
-end
+% [~, ~,~, ~, ~,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+% dev_power = zeros(1,length(locDev));
+% for i=1:length(locDev)
+%     dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
+% end
 
 
 %find devices in each charger's radius
@@ -87,7 +95,7 @@ end
 C=cell(1,length(x_c_T));
 for i=1:length(locDev)
     for j=1:length(x_c_T)
-        if norm([locDev(1,i) locDev(2,i)] - [x_c_T(j) y_c_T(j)])< (r+r_c+2)
+        if norm([locDev(1,i) locDev(2,i)] - [x_c_T(j) y_c_T(j)])< 4%(r+r_c+2)
            C{j}=[C{j} i];
         end
     end
@@ -97,6 +105,7 @@ end
 
 %get a random charger x
 x=randi([1,length(x_c_T)]);
+x=1;
 x_range = C{x};
 closeToDevArray=[];
 
@@ -343,37 +352,52 @@ while sum(chargers_remained==0)~=length(x_c_T)
         end
 
     end %for inter
-
-    m=max(errors(:,1));
-    minE=10^3;
-    for er=1:size(errors,1)
-        if m(1,1)==errors(er,1) && errors(er,2)<minE
-            minE=errors(er,2);
-            numE=er;
-        end
-    end   
+    if size(closeToDevArray,1)==1
+        continue
+    end
+%     m=max(errors(:,1));
+%     minE=10^3;
+%     for er=1:size(errors,1)
+%         if m(1,1)==errors(er,1) && errors(er,2)<minE
+%             minE=errors(er,2);
+%             numE=er;
+%         end
+%     end   
     
     polyin=[];
+    centrx=0;
+    centry=0;
     if size(closeToDevArray,1)>2
         polyin = polyshape(closeToDevArray(:,1),closeToDevArray(:,2));
         [centrx,centry] = centroid(polyin);
         polyy = [polyy; centrx centry];
+    elseif isempty(closeToDevArray)
+         x_c_T(x_new)=x_c_Ti(x_new);
+         y_c_T(x_new)=y_c_Ti(x_new);
+         
+    elseif size(closeToDevArray,1)==2
+         x_c_T(x_new)=(closeToDevArray(1,1)+closeToDevArray(1,2))/2;
+         y_c_T(x_new)=(closeToDevArray(2,1)+closeToDevArray(2,2))/2;
+        
+%      elseif size(closeToDevArray,1)==1
+%         continue
+    else
+        size(closeToDevArray,1)
+        closeToDevArray
+    end
+    mdis = 10^3;
+    for p=1:size(intersections,1)
+        pdis = norm(intersections(p,:) - [centrx centry]);
+        if pdis<mdis
+            mdis=pdis;
+            x_c_T(x_new)=intersections(p,1);
+            y_c_T(x_new)=intersections(p,2);  
+        end
     end
     
-        mdis = 10^3;
-        for p=1:size(intersections,1)
-            pdis = norm(intersections(p,:) - [centrx centry]);
-            if pdis<mdis
-                mdis=pdis;
-                x_c_T(x_new)=intersections(p,1);
-                y_c_T(x_new)=intersections(p,2);  
-            end
-        end
-    
-%     if ~isempty(intersections)
-%         x_c_T(x_new)=intersections(numE,1);
-%         y_c_T(x_new)=intersections(numE,2);
-%     else
+%     if isempty(intersections)
+%         x_c_T(x_new)=centrx;
+%         y_c_T(x_new)=centry;  
 %         fprintf("no intersections\n")
 %     end    
 
@@ -391,45 +415,45 @@ end %for charger
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%    Initial Power   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-for i = 1:length(x_c_T)
-    for j = 1:size(locDev,2)
-        distance(i,j) = norm([x_c_Ti(i) y_c_Ti(i)] - [locDev(1,j) locDev(2,j)]);
-    end
-end
-
-itial_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
-intial_sum_total_power_received = sum(itial_total_power_received);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%    Random Power  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-for i=1:length(x_c_T)    
-    signx = rand(1)>0.5;
-    signy = rand(1)>0.5;
-    x_c_Tr(i) = x_c_T(i)+r*rand(1)*(-1)^signx;
-    y_c_Tr(i) = y_c_T(i)+r*rand(1)*(-1)^signy;
-end
-
-for i = 1:length(x_c_T)
-    for j = 1:size(locDev,2)
-        distance(i,j) = norm([x_c_Tr(i) y_c_Tr(i)] - [locDev(1,j) locDev(2,j)]);
-    end
-end
-
-random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
-random_sum_total_power_received = sum(itial_total_power_received);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%    Initial Power   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% for i = 1:length(x_c_T)
+%     for j = 1:size(locDev,2)
+%         distance(i,j) = norm([x_c_Ti(i) y_c_Ti(i)] - [locDev(1,j) locDev(2,j)]);
+%     end
+% end
+% 
+% itial_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+% intial_sum_total_power_received = sum(itial_total_power_received);
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%    Random Power  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% for i=1:length(x_c_T)    
+%     signx = rand(1)>0.5;
+%     signy = rand(1)>0.5;
+%     x_c_Tr(i) = x_c_T(i)+r*rand(1)*(-1)^signx;
+%     y_c_Tr(i) = y_c_T(i)+r*rand(1)*(-1)^signy;
+% end
+% 
+% for i = 1:length(x_c_T)
+%     for j = 1:size(locDev,2)
+%         distance(i,j) = norm([x_c_Tr(i) y_c_Tr(i)] - [locDev(1,j) locDev(2,j)]);
+%     end
+% end
+% 
+% random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+% random_sum_total_power_received = sum(itial_total_power_received);
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -446,14 +470,14 @@ final_total_power_received = circles_total_power(x_c_T, 1:size(locDev,2), distan
 final_sum_total_power_received = sum(final_total_power_received);
 
 
-gain=final_sum_total_power_received-intial_sum_total_power_received;
-realtive_gain = gain/intial_sum_total_power_received;
-fprintf('Realtive gain: : %f .\n', realtive_gain*100);
+gain=final_sum_total_power_received;%-intial_sum_total_power_received;
+% realtive_gain = gain/intial_sum_total_power_received;
+% fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+gainf(rad_iter)=gainf(rad_iter)+gain;
 
 
 
@@ -495,7 +519,7 @@ for i=1:numel(x_c_Ti)
     plot(xunit, yunit,"y-",'LineWidth',2);
 end
 hold on
-plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
+%plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
 %plot the circles for possible positions
 % colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
 % for k=1:numel(inter)
@@ -518,8 +542,8 @@ plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
+end
+end
 
 
 

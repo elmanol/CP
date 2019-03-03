@@ -29,15 +29,13 @@ lambda = 0.3;
 % x_c_T = x_c_T - mod(x_c_T,0.05);
 % y_c_T = 10*rand(num_chargers,1);
 % y_c_T = y_c_T - mod(y_c_T,0.05);
-% x_c_Ti = x_c_T;
-% y_c_Ti = y_c_T;
 
 %grid placement
-num_chargers = 6;
-x_c_T = [3 6 9 3 6 9];
-y_c_T = [3 3 3 8 8 8];
-x_c_Ti = x_c_T;
-y_c_Ti = y_c_T;
+% num_chargers = 6;
+% x_c_T = [3 6 9 3 6 9];
+% y_c_T = [3 3 3 8 8 8];
+% x_c_Ti = x_c_T;
+% y_c_Ti = y_c_T;
 
 %radius of charger placement areas
 r = 4*lambda;
@@ -49,16 +47,26 @@ r_c = 2.5;
 nPoints = 15;
 
 %minimum allowed distance from the chargers
-minAllowableDistance = r;
+minAllowableDistance = r+lambda;
 
 %set pairing way ('random' or 'closest')
 pairing_way='closest';
 
 
-%find random devices positions
+min_all_dist = 2*r;
+
+[x_c_T,y_c_T] = sparse_c(6,stopx,stopy,min_all_dist);
+
+
+x_c_Ti = x_c_T;
+y_c_Ti = y_c_T;
+
+
+%find random devices positions, must be set after x_c_T, y_c_T
 [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,12 +82,12 @@ pairing_way='closest';
 dCradius = cell(length(locDev),length(x_c_T));
 
 %find devices initial power
-[Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-dev_power = zeros(1,length(locDev));
-for i=1:length(locDev)
-    dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
-end
-
+% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+% dev_power = zeros(1,length(locDev));
+% for i=1:length(locDev)
+%     dev_power(i) = P_Transfered(int16(locDev(1,i)/0.05+1), int16(locDev(2,i)/0.05+1));
+% end
+% 
 
 %find devices in each charger's radius
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,6 +104,7 @@ end
 
 %get a random charger x
 x=randi([1,length(x_c_T)]);
+% x=1;
 x_range = C{x};
 closeToDevArray=[];
 
@@ -178,6 +187,15 @@ while sum(chargers_remained==0)~=length(x_c_T)
        end
        x_new = rand_iter;
        
+    elseif strcmp(pairing_way,'random')
+       
+       %randomly find a charger that hasn't been used yet 
+       rand_iter = randi(length(chargers_remained),1);
+       while chargers_remained(rand_iter)==0
+            rand_iter = randi(length(chargers_remained),1);
+       end
+       x_new = rand_iter;
+       
     else
         
         print('wrong pairing way selected');
@@ -210,6 +228,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
     total_errors = zeros(inter_pair_num,4);
     
     %for every device that is in the raius of both chargers 
+    intersections = [];
     for i=1:numel(inter)
         
         %get the coordinates of the device
@@ -301,7 +320,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
         
             
         if i==2
-            intersections = [];
+            
             x1  = locDev(1,inter(1));
             y1  = locDev(2,inter(1));        
             x2  = locDev(1,inter(2));
@@ -338,23 +357,22 @@ while sum(chargers_remained==0)~=length(x_c_T)
             end
         end
 
-
-
-        m=max(errors(:,1));
-        minE=10^3;
-        for er=1:size(errors,1)
-            if m(1,1)==errors(er,1) && errors(er,2)<minE
-                minE=errors(er,2);
-                numE=er;
-            end
-        end   
-        if ~isempty(intersections)
-            x_c_T(x_new)=intersections(numE,1);
-            y_c_T(x_new)=intersections(numE,2);
-        else
-            fprintf("no intersections\n")
-        end
     end %for inter
+    
+    m=max(errors(:,1));
+    minE=10^3;
+    for er=1:size(errors,1)
+        if m(1,1)==errors(er,1) && errors(er,2)<minE
+            minE=errors(er,2);
+            numE=er;
+        end
+    end   
+    if ~isempty(intersections)
+        x_c_T(x_new)=intersections(numE,1);
+        y_c_T(x_new)=intersections(numE,2);
+    else
+        fprintf("no intersections\n")
+    end
 
     polyin=[];
     if size(closeToDevArray,1)>2

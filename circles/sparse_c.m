@@ -1,6 +1,6 @@
-function [allX,allY] = sparse_c(num,stopx,stopy)  
+function [allX,allY] = sparse_c(num,stopx,stopy,minAllowableDistance)  
 
-    minAllowableDistance=1; 
+
     i=1;
     x=stopx*rand(1,1);
     y=stopy*rand(1,1);

@@ -16,24 +16,10 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
-%centers of charger placement areas
-% num_chargers = 5;
-% x_c_T = [ 2.5 2.5 1 6 4 ];
-% y_c_T = [ 2.1 4.5 1 5 7];
 
-
-
-
-
-%grid placement
-
-x_c_T = [3 6 9 3 6 9];
-y_c_T = [3 3 3 8 8 8];
-
-[x_c_T,y_c_T] = sparse_c(6,stopx,stopy);
 
 %radius of charger placement areas
-r = 4*lambda;
+r = 2*lambda;
 
 %charger radius
 r_c = 2.5;
@@ -42,10 +28,25 @@ r_c = 2.5;
 nPoints = 15;
 
 %minimum allowed distance from the chargers
-minAllowableDistance = r;
+minAllowableDistance = r+lambda;
 
 %set pairing way ('random' or 'closest')
 pairing_way='closest';
+
+
+%centers of charger placement areas
+% num_chargers = 5;
+% x_c_T = [ 2.5 2.5 1 6 4 ];
+% y_c_T = [ 2.1 4.5 1 5 7];
+
+
+%grid placement
+
+% x_c_T = [3 6 9 3 6 9];
+% y_c_T = [3 3 3 8 8 8];
+
+[x_c_T,y_c_T] = sparse_c(6,stopx,stopy,2*r);
+
 
 %save chargers initial positions
 x_c_Ti = x_c_T;

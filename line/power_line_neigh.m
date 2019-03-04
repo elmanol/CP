@@ -45,6 +45,13 @@ c_r = 1;
 
 neigh_radius = c_r;
 
+[x_c_T,y_c_T] = sparse_c(6,stopx,stopy);
+[locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+x_c_R = locDev(1,:);
+y_c_R = locDev(2,:);
+
+x_c_Ti = x_c_T;
+y_c_Ti = y_c_T;
 
 num_iterations=100;
 % iter_step=100;
@@ -52,7 +59,11 @@ num_iterations=100;
 % neigh_size=int16(num_iterations/iter_step);
 % neigh_gain = zeros(1,neigh_size);
 neigh_gain=zeros(4,num_iterations);
-
+every_iter_power1=zeros(num_iterations,90);
+every_iter_power2=zeros(num_iterations,90);
+every_iter_power3=zeros(num_iterations,90);
+every_iter_power4=zeros(num_iterations,90);
+power_per_rep = zeros(4,90);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%   Main  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,16 +73,14 @@ for iterations=1:num_iterations
 %     x_c_T = [ 2.5 2.5 1 6 4 ];
 %     y_c_T = [ 2.1 4.5 1 5 7];
      
-    [x_c_T,y_c_T] = sparse_c(6,stopx,stopy);
+    
     %find random devices positions
-    [locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
-    x_c_R = locDev(1,:);
-    y_c_R = locDev(2,:);
+
     % nDev = length(x_c_R);
      
     
-    x_c_Ti = x_c_T;
-    y_c_Ti = y_c_T;
+    x_c_T = x_c_Ti;
+    y_c_T = y_c_Ti;
 
     
     
@@ -111,7 +120,7 @@ for iterations=1:num_iterations
 
     total_power_all_chargers=0;
 
-    for rep=1:100
+    for rep=1:90
 
     %   total_power_received=zeros(num_steps+1);%,length(x_c_R));
 
@@ -188,6 +197,7 @@ for iterations=1:num_iterations
         final_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
     %     powers=[powers;final_total_power_received];
+        power_per_rep(1,rep) =  final_total_power_received;
     end
 
         gain = final_total_power_received;% - init_total_power_received;
@@ -196,7 +206,7 @@ for iterations=1:num_iterations
 
         neigh_gain(1,iterations)=realtive_gain;
     
-  
+        
     
     
     
@@ -207,19 +217,20 @@ for iterations=1:num_iterations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%   increased radius +1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
-%     x_c_T = x_c_Ti;
-%     y_c_T = y_c_Ti;
-% 
-%     for i = 1:length(x_c_T)
-%         for j = 1:nDev
-%             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
-%         end
-%     end
+    x_c_T = x_c_Ti;
+    y_c_T = y_c_Ti;
+
+    for i = 1:length(x_c_T)
+        for j = 1:nDev
+            distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
+        end
+    end
 %     init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    
     %find the devices that are in the range of each charger
     C=cell(1,length(x_c_T));
     for i=1:length(x_c_T)
@@ -242,8 +253,8 @@ for iterations=1:num_iterations
     powers=[];
 
     total_power_all_chargers=0;
-
-    for rep=1:100
+    
+    for rep=1:90
 
     %   total_power_received=zeros(num_steps+1);%,length(x_c_R));
 
@@ -318,7 +329,7 @@ for iterations=1:num_iterations
 
     %     past_power = final_total_power_received;
         final_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
-
+        power_per_rep(2,rep) = final_total_power_received;
     %     powers=[powers;final_total_power_received];
     end
 
@@ -330,7 +341,7 @@ for iterations=1:num_iterations
 
         neigh_gain(2,iterations)=realtive_gain;
     
-    
+
     
     
     
@@ -339,14 +350,14 @@ for iterations=1:num_iterations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%   increased radius +2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
-%     x_c_T = x_c_Ti;
-%     y_c_T = y_c_Ti;
-%     
-%     for i = 1:length(x_c_T)
-%         for j = 1:nDev
-%             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
-%         end
-%     end
+    x_c_T = x_c_Ti;
+    y_c_T = y_c_Ti;
+    
+    for i = 1:length(x_c_T)
+        for j = 1:nDev
+            distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
+        end
+    end
 %     init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -375,7 +386,7 @@ for iterations=1:num_iterations
 
     total_power_all_chargers=0;
 
-    for rep=1:100
+    for rep=1:90
 
     %   total_power_received=zeros(num_steps+1);%,length(x_c_R));
 
@@ -450,7 +461,7 @@ for iterations=1:num_iterations
 
     %     past_power = final_total_power_received;
         final_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
-
+        power_per_rep(3,rep) = final_total_power_received;
     %     powers=[powers;final_total_power_received];
     end
 
@@ -469,15 +480,15 @@ for iterations=1:num_iterations
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%   increased radius +3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-%     x_c_T = x_c_Ti;
-%     y_c_T = y_c_Ti;
-%     
-%     for i = 1:length(x_c_T)
-%         for j = 1:nDev
-%             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
-%         end
-%     end
+
+    x_c_T = x_c_Ti;
+    y_c_T = y_c_Ti;
+    
+    for i = 1:length(x_c_T)
+        for j = 1:nDev
+            distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
+        end
+    end
 %     init_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -487,7 +498,7 @@ for iterations=1:num_iterations
     C=cell(1,length(x_c_T));
     for i=1:length(x_c_T)
         for j=1:length(x_c_R)
-            if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+3
+            if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+15
                C{i}=[C{i} j];
             end
         end 
@@ -506,7 +517,7 @@ for iterations=1:num_iterations
 
     total_power_all_chargers=0;
 
-    for rep=1:100
+    for rep=1:90
 
     %   total_power_received=zeros(num_steps+1);%,length(x_c_R));
 
@@ -581,7 +592,7 @@ for iterations=1:num_iterations
 
     %     past_power = final_total_power_received;
         final_total_power_received = sum(total_power( x_c_T,1:nDev,distance,lambda));
-
+        power_per_rep(4,rep) = final_total_power_received;
     %     powers=[powers;final_total_power_received];
     end
 
@@ -591,11 +602,14 @@ for iterations=1:num_iterations
     realtive_gain = gain;%/init_total_power_received;
     
     neigh_gain(4,iterations)=realtive_gain;
-
+    every_iter_power1(iterations,:) = power_per_rep(1,:);
+    every_iter_power2(iterations,:) = power_per_rep(2,:);
+    every_iter_power3(iterations,:) = power_per_rep(3,:);
+    every_iter_power4(iterations,:) = power_per_rep(4,:);
 end
 
 neigh_gain = neigh_gain/num_iterations;
-gain=[init_total_power_received neigh_gain(1,iterations) neigh_gain(2,iterations) neigh_gain(3,iterations) neigh_gain(4,iterations)];
+gain=[init_total_power_received/100 neigh_gain(1,num_iterations) neigh_gain(2,num_iterations) neigh_gain(3,num_iterations) neigh_gain(4,num_iterations)];
 br=bar(gain);
 br.FaceColor = 'flat';
 br.CData(1,:) = [0 0.4 0.7];
@@ -606,6 +620,11 @@ br.CData(4,:) = [0.4 0.6 0.7];
 xlabel('Radius length') % x-axis label
 ylabel('Mean Gain') % y-axis label
 
-
+figure
 set(gca,'xticklabel',{'1','2','3','4'})
-
+x=1:90;
+plot(x,power_per_rep(1,:),'g-' ,x, power_per_rep(2,:),'r--',...
+    x,power_per_rep(3,:),'k:', x,power_per_rep(4,:),'b-.')
+xlabel('Time(Rounds)')
+ylabel('Cumulative Power(Watts)')
+legend('Radius 1','Radius 2','Radius 3','Unbounded Radius','northoutside','Orientation','horizontal')

@@ -186,7 +186,7 @@ for iterations=1:num_iterations
 
 
     gain = final_total_power_received - init_total_power_received;
-    realtive_gain = gain/init_total_power_received;
+    realtive_gain = gain/init_total_power_received*100
 %     fprintf('Realtive gain: : %f .\n', realtive_gain*100);
     
     

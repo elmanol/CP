@@ -27,7 +27,7 @@ ri = 4*lambda;
 r_c = 2.5;
 
 %number of devices
-nPoints = 15;
+nPoints = 20;
 
 %minimum allowed distance from the chargers
 minAllowableDistance = ri+lambda;

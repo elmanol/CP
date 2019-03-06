@@ -16,27 +16,42 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
+nPoints = 3;
+
+r = 2*lambda;
+
+minAllowableDistance = r+lambda;
+x_c_T = [ 2.5 2.5];
+y_c_T = [ 4 7];
 %centers of charger placement areas
 % num_chargers = 5;
 % x_c_T = [ 2.5 2.5 1 6 4 ];
 % y_c_T = [ 2.1 4.5 1 5 7];
 
+% for i=1:100
+%     [x_c_Tg(i,:),y_c_Tg(i,:)] = sparse_c(6,stopx,stopy,2*r);
+%     [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_Tg(i,:),y_c_Tg(i,:));
+%     locDevx(i,:)=locDev(1,:);
+%     locDevy(i,:)=locDev(2,:);
+% end
 
-
-
-
-
+for iter=1:1
+    
+% x_c_T = x_c_Tg(iter,:);
+% y_c_T = y_c_Tg(iter,:);
+% 
+% locDev = [locDevx(iter,:);locDevy(iter,:)];
 %radius of charger placement areas
-r = 2*lambda;
+% r = 2*lambda;
 
 %charger radius
 r_c = 2.5;
 
 %number of devices
-nPoints = 15;
+%nPoints = 20;
 
 %minimum allowed distance from the chargers
-minAllowableDistance = r%+lambda;
+%minAllowableDistance = r+lambda;
 
 %set pairing way ('random' or 'closest')
 pairing_way='closest';
@@ -44,20 +59,22 @@ pairing_way='closest';
 
 %grid placement
 
-x_c_T = [3 6 9 3 6 9];
-y_c_T = [3 3 3 8 8 8];
+% x_c_T = [3 6 9 3 6 9];
+% y_c_T = [3 3 3 8 8 8];
+% 
+% [x_c_T,y_c_T] = sparse_c(2,stopx,stopy,2*r);
 
-[x_c_T,y_c_T] = sparse_c(6,stopx,stopy,2*r);
-
-
+x_c_T = x_c_Ti;
+y_c_T = y_c_Ti;
 %save chargers initial positions
 x_c_Ti = x_c_T;
 y_c_Ti = y_c_T;
 
 
 
+
 %find random devices positions
-[locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+% [locDev]=locations(10, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
@@ -97,9 +114,10 @@ end
 
 %get a random charger x
 x=randi([1,length(x_c_T)]);
+% x=1;
 x_range = C{x};
 closeToDevArray=[];
-
+allint=[];
 %find the centroid of x
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for i=1:numel(x_range)
@@ -337,6 +355,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
                                 if (norm([xout(s) yout(s)] - [x_c_Ti(x_new) y_c_Ti(x_new)]) <= r && ...
                                 	xout(s)>0 && xout(s)<stopx && yout(s)>0 && yout(s)<stopy)
                                     intersections = [intersections; xout(s) yout(s)];
+                                    allint = [allint; xout(s) yout(s)];
                                 end
                             end
                         end
@@ -400,7 +419,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
         end 
 
 
-        if ~isempty(intersections)
+        if ~isempty(total_errors)
             x_c_T(x_new)=total_errors(numE2,1);
             y_c_T(x_new)=total_errors(numE2,2);
         else
@@ -444,23 +463,23 @@ intial_sum_total_power_received = sum(itial_total_power_received);
 %%%%%%%%%%%%%%%%%%%%    Random Power  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for i=1:length(x_c_T)    
-    signx = rand(1)>0.5;
-    signy = rand(1)>0.5;
-    x_c_Tr(i) = x_c_T(i)+r*rand(1)*(-1)^signx;
-    y_c_Tr(i) = y_c_T(i)+r*rand(1)*(-1)^signy;
-end
-
-for i = 1:length(x_c_T)
-    for j = 1:size(locDev,2)
-        distance(i,j) = norm([x_c_Tr(i) y_c_Tr(i)] - [locDev(1,j) locDev(2,j)]);
-    end
-end
-
-random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
-random_sum_total_power_received = sum(itial_total_power_received);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% for i=1:length(x_c_T)    
+%     signx = rand(1)>0.5;
+%     signy = rand(1)>0.5;
+%     x_c_Tr(i) = x_c_T(i)+r*rand(1)*(-1)^signx;
+%     y_c_Tr(i) = y_c_T(i)+r*rand(1)*(-1)^signy;
+% end
+% 
+% for i = 1:length(x_c_T)
+%     for j = 1:size(locDev,2)
+%         distance(i,j) = norm([x_c_Tr(i) y_c_Tr(i)] - [locDev(1,j) locDev(2,j)]);
+%     end
+% end
+% 
+% random_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+% random_sum_total_power_received = sum(itial_total_power_received);
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -485,7 +504,12 @@ fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+power_many(1,iter)=final_sum_total_power_received;
 
+end %iterations stop
+
+
+sum_power_many = sum(power_many);
 
 
 
@@ -493,24 +517,28 @@ fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 %%%%%%%%%%%%%%%%%%%  Plots  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%plot the power distribution
-[Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-[X,Y] = meshgrid(0:step:stopx,0:step:stopy);
-abs(P_Transfered);
-figure
-surf(Y,X,abs(P_Transfered));
+% plot the power distribution
+% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+% [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
+% abs(P_Transfered);
+% figure
+% surf(Y,X,abs(P_Transfered));
 
 
-hold on
-if ~isempty(polyin)
-    plot(centrx,centry, 'm*','LineWidth',10);
-end  
+% hold on
+% if ~isempty(polyin)
+%     plot(centrx,centry, 'm*','LineWidth',10);
+% end  
+
+% hold on
+% plot(allint(:,1), allint(:,2), 'r*');
+
 
 %plot the devices positions
-plot(locDev(1,:), locDev(2,:), 'g*');
+ plot(locDev(1,:), locDev(2,:), 'ro');
 % plot(plots(:,1), plots(:,2), 'r.');
 
-%plot the placement areas
+% % % plot the placement areas
 for i=1:numel(x_c_Ti)
     th = 0:step:2*pi+step;
     xunit = r * cos(th) + x_c_Ti(i);
@@ -528,27 +556,45 @@ for i=1:numel(x_c_Ti)
 end
 hold on
 
-%plot the circles for possible positions
-% colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
-% for k=1:numel(inter)
-%     for i=1:numel(dC{inter(k),x_new})
-%         th = 0:step:2*pi+step;
-%         xunit = dC{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
-%         yunit = dC{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
-% 
-%         %check for points outside the plane
-%         for j=1:numel(xunit)
-%             if xunit(j)<0 xunit(j)=0;
-%             elseif xunit(j)>stopx xunit(j)=stopx;end
-% 
-%             if yunit(j)<0 yunit(j)=0;
-%             elseif yunit(j)>stopy yunit(j)=stopy;end
-%         end
-%         plot(xunit, yunit,colors(k),'LineWidth',1.5);
-%     end
-% end
+% % plot the circles for possible positions
+colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
+for k=1:numel(inter)
+    for i=1:numel(dCradius{inter(k),x_new})
+        th = 0:step:2*pi+step;
+        xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
+        yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
+
+        %check for points outside the plane
+        for j=1:numel(xunit)
+            if xunit(j)<0 xunit(j)=0;
+            elseif xunit(j)>stopx xunit(j)=stopx;end
+
+            if yunit(j)<0 yunit(j)=0;
+            elseif yunit(j)>stopy yunit(j)=stopy;end
+        end
+        plot(xunit, yunit,colors(k),'LineWidth',1.5);
+    end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+% figure
+% set(gca,'xticklabel',{'1','2','3','4'})
+% x=1:100;
+% plot(x,sum_power_many,'g-' ,x, sum_power,'r--')
+% xlabel('Time(Rounds)')
+% ylabel('Cumulative Power(Watts)')
+% legend('Radius 1','Radius 2','Radius 3','Unbounded Radius','northoutside','Orientation','horizontal')
+% 
+% 
+% mean_powers=[sum(sum_power)/100 sum(sum_power_many)/100];
+% br=bar(mean_powers);
+% br.FaceColor = 'flat';
+% br.CData(1,:) = [0 0.4 0.7];
+% br.CData(2,:) = [0 0.65 0.14];
+% % br.CData(3,:) = [0.85 0.33 0.1];
+% % br.CData(4,:) = [0.93 0.69 0.13];
+% % br.CData(5,:) = [0.4 0.6 0.7];
+% xlabel('Number of intersections') % x-axis label
+% ylabel('Power') % y-axis label
 

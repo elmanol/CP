@@ -21,14 +21,14 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
-%centers of charger placement areas
-    x_c_T = rand(6,1,1)*10;%[ 0 4 1];
-    y_c_T = rand(6,1,1)*10;%[ 0 2 5];
-% x_c_T = [ 2.5 2.5 1 6 4 ];
-% y_c_T = [ 2.1 4.5 1 5 7];
-
-x_c_Ti = x_c_T;
-y_c_Ti = y_c_T;
+% %centers of charger placement areas
+%     x_c_T = rand(6,1,1)*10;%[ 0 4 1];
+%     y_c_T = rand(6,1,1)*10;%[ 0 2 5];
+% % x_c_T = [ 2.5 2.5 1 6 4 ];
+% % y_c_T = [ 2.1 4.5 1 5 7];
+% 
+% x_c_Ti = x_c_T;
+% y_c_Ti = y_c_T;
 
 
 %devices positions
@@ -36,7 +36,7 @@ y_c_Ti = y_c_T;
 % locDevy=[0 0];
 %or
 %number of devices for random placement
-nDev=15; %an to allaksw allazw kai to x_c_R
+nDev=20; %an to allaksw allazw kai to x_c_R
 
 %minimum allowed distance from the chargers
 minAllowableDistance = 3*lambda/2;
@@ -44,12 +44,12 @@ minAllowableDistance = 3*lambda/2;
 %charger radius
 c_r = 4;
 
-neigh_radius = c_r;
+neigh_radius = 100;
 
 %find random devices positions
-[locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
-x_c_R = locDev(1,:);
-y_c_R = locDev(2,:);
+% [locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+% x_c_R = locDev(1,:);
+% y_c_R = locDev(2,:);
 % nDev = length(x_c_R);
 
 
@@ -63,8 +63,20 @@ num_iterations=100;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%   Main  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+line_power=0;
+for iter=1:100
 
-for iterations=1:num_iterations
+x_c_T = x_c_Tg(iter,:);
+y_c_T = y_c_Tg(iter,:);
+
+locDev = [locDevx(iter,:);locDevy(iter,:)];
+x_c_R = locDev(1,:);
+y_c_R = locDev(2,:);
+
+x_c_Ti = x_c_T;
+y_c_Ti = y_c_T;
+
+% for iterations=1:num_iterations
 
     for i = 1:length(x_c_T)
         for j = 1:nDev
@@ -199,8 +211,9 @@ for iterations=1:num_iterations
     final_power(iterations)= sum(total_power( x_c_T,1:nDev,distance,lambda));
     x_c_T = x_c_Ti;
     y_c_T = y_c_Ti;
-end
-    
+% end
+line_power = line_power + total_power( x_c_T,1:nDev,distance,lambda);
+end   
 hold on
 %plot the devices positions
 % plot(locDev(1,:), locDev(2,:), 'g*');

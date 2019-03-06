@@ -35,7 +35,7 @@ lambda = 0.3;
 % locDevy=[0 0];
 %or
 %number of devices for random placement
-nDev=9; %an to allaksw allazw kai to x_c_R
+nDev=50; %an to allaksw allazw kai to x_c_R
 
 %minimum allowed distance from the chargers
 minAllowableDistance = 3*lambda/2;
@@ -45,8 +45,9 @@ c_r = 1;
 
 neigh_radius = c_r;
 
-[x_c_T,y_c_T] = sparse_c(6,stopx,stopy);
+[x_c_T,y_c_T] = sparse_c(10,stopx,stopy);
 [locDev]=locations(nDev, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+
 x_c_R = locDev(1,:);
 y_c_R = locDev(2,:);
 
@@ -629,10 +630,10 @@ figure
 set(gca,'xticklabel',{'1','2','3','4'})
 x=1:90;
 plot(x,init,'c-',...
-     x,power_per_rep(1,:),'g-',...
-     x, power_per_rep(2,:),'r--',...
-     x,power_per_rep(3,:),'k:',...
-     x,power_per_rep(4,:),'b-.','LineWidth',2)
+     x,mean(every_iter_power1,1),'g-',...
+     x,mean(every_iter_power2,1),'r--',...
+     x,mean(every_iter_power3,1),'k:',...
+     x,mean(every_iter_power4,1),'b-.','LineWidth',2)
 xlabel('Time(Rounds)')
 ylabel('Cumulative Power(Watts)')
 legend('Initial Power','Radius 1','Radius 2','Radius 3','Unbounded Radius','northoutside','Orientation','horizontal')

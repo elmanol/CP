@@ -36,8 +36,8 @@ pairing_way='closest';
 % x_c_T = [ 2.5 2.5 1 6 4 ];
 % y_c_T = [ 2.1 4.5 1 5 7];
 
-x_c_T = [ 2.5 2.5];
-y_c_T = [ 4 7];
+% x_c_T = [ 2.5 2.5];
+% y_c_T = [ 4 7];
 % num_chargers = 6;
 % x_c_T = 10*rand(num_chargers,1);
 % x_c_T = x_c_T - mod(x_c_T,0.05);
@@ -49,24 +49,24 @@ y_c_T = [ 4 7];
 % x_c_T = [3 6 9 3 6 9];
 % y_c_T = [3 3 3 8 8 8];
 
-% [x_c_T,y_c_T] = sparse_c(6,stopx,stopy,2*r);
+[x_c_T,y_c_T] = sparse_c(10,stopx,stopy,2*r);
 
-for iter=1:1
+for iter=1:100
     
     x_c_T = x_c_Tg(iter,:);
     y_c_T = y_c_Tg(iter,:);
 
     locDev = [locDevx(iter,:);locDevy(iter,:)];
     
-    x_c_T = [ 2.5 2.5];
-    y_c_T = [ 4 7];
+%     x_c_T = [ 2.5 2.5];
+%     y_c_T = [ 4 7];
     
     x_c_Ti = x_c_T;
     y_c_Ti = y_c_T;
 
 
 %find random devices positions
-[locDev]=locations(10, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
+% [locDev]=locations(10, stopx,stopy,minAllowableDistance,x_c_T,y_c_T);
 %  locDev = [8.2000    6.4500    8.1000    3.5000    8.7500;
 %      7.9500    3.8000    5.3500    9.4000    5.5000];
 
@@ -502,13 +502,13 @@ sum_power_multi = sum(power_multi);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%  Plots  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-figure(11)
-plot(x_c_T,y_c_T,'og',locDev(1,:),locDev(2,:),'*r')
-xlabel('x(m)')
-ylabel('y(m)')
-legend('Chargers','Devices','Location','northoutside','Orientation','horizontal')
-
-hold on
+% figure(11)
+% plot(x_c_T,y_c_T,'og',locDev(1,:),locDev(2,:),'*r')
+% xlabel('x(m)')
+% ylabel('y(m)')
+% legend('Chargers','Devices','Location','northoutside','Orientation','horizontal')
+% 
+% hold on
 % %plot the power distribution
 % [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
 % [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
@@ -529,46 +529,46 @@ hold on
 % % plot(plots(:,1), plots(:,2), 'r.');
 % hold on
 % %plot the placement areas
-for i=1:numel(x_c_Ti)
-    th = 0:step:2*pi+step;
-    xunit = r * cos(th) + x_c_Ti(i);
-    yunit = r * sin(th) + y_c_Ti(i);
-    
-    %check for points outside the plane
-    for j=1:numel(xunit)
-        if xunit(j)<0 xunit(j)=0;
-        elseif xunit(j)>stopx xunit(j)=stopx;end
-
-        if yunit(j)<0 yunit(j)=0;
-        elseif yunit(j)>stopy yunit(j)=stopy;end
-    end
-    plot(xunit, yunit,"y-",'LineWidth',2);
-end
-
-
+% for i=1:numel(x_c_Ti)
+%     th = 0:step:2*pi+step;
+%     xunit = r * cos(th) + x_c_Ti(i);
+%     yunit = r * sin(th) + y_c_Ti(i);
+%     
+%     %check for points outside the plane
+%     for j=1:numel(xunit)
+%         if xunit(j)<0 xunit(j)=0;
+%         elseif xunit(j)>stopx xunit(j)=stopx;end
+% 
+%         if yunit(j)<0 yunit(j)=0;
+%         elseif yunit(j)>stopy yunit(j)=stopy;end
+%     end
+%     plot(xunit, yunit,"y-",'LineWidth',2);
+% end
 
 
-hold on
-% plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
-% % plot the circles for possible positions
-colors=["b-","r-","w-","m-","b-","r-","m-","b-","k-"];
-for k=1:numel(inter)
-    for i=1:numel(dCradius{inter(k),x_new})
-        th = 0:step:2*pi+step;
-        xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
-        yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
 
-        %check for points outside the plane
-        for j=1:numel(xunit)
-            if xunit(j)<0 xunit(j)=0;
-            elseif xunit(j)>stopx xunit(j)=stopx;end
 
-            if yunit(j)<0 yunit(j)=0;
-            elseif yunit(j)>stopy yunit(j)=stopy;end
-        end
-        plot(xunit, yunit,colors(k),'LineWidth',1.5);
-    end
-end
+% hold on
+% % plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
+% % % plot the circles for possible positions
+% colors=["b-","r-","w-","m-","b-","r-","m-","b-","k-"];
+% for k=1:numel(inter)
+%     for i=1:numel(dCradius{inter(k),x_new})
+%         th = 0:step:2*pi+step;
+%         xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
+%         yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
+% 
+%         %check for points outside the plane
+%         for j=1:numel(xunit)
+%             if xunit(j)<0 xunit(j)=0;
+%             elseif xunit(j)>stopx xunit(j)=stopx;end
+% 
+%             if yunit(j)<0 yunit(j)=0;
+%             elseif yunit(j)>stopy yunit(j)=stopy;end
+%         end
+%         plot(xunit, yunit,colors(k),'LineWidth',1.5);
+%     end
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

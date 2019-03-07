@@ -220,15 +220,15 @@ while sum(chargers_remained==0)~=length(x_c_T)
          x_mean = x1+x2;
          inter_dist(i) = x_mean;        
     end
-    [~,pos]=sort(inter_dist,'ascend');
-    inter = inter(pos);
+%     [~,pos]=sort(inter_dist,'ascend');
+%     inter = inter(pos);
 
 %     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
 %     if numel(inter)>1
 %         plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
 %     end
     
-    pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
+%     pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
     found=[];
     
     inter_pair_num = (numel(inter)*(numel(inter)-1))/2;
@@ -361,24 +361,24 @@ while sum(chargers_remained==0)~=length(x_c_T)
 
     end %for inter
 
-    if size(closeToDevArray,1)==1
-        continue
-    end
-    m=max(errors(:,1));
-    minE=10^3;
-    for er=1:size(errors,1)
-        if m(1,1)==errors(er,1) && errors(er,2)<minE
-            minE=errors(er,2);
-            numE=er;
-        end
-    end   
-    if ~isempty(intersections)
-        x_c_T(x_new)=intersections(numE,1);
-        y_c_T(x_new)=intersections(numE,2); 
-    else
-%         'no intersect'
-        continue     
-    end
+%     if size(closeToDevArray,1)==1
+%         continue
+%     end
+%     m=max(errors(:,1));
+%     minE=10^3;
+%     for er=1:size(errors,1)
+%         if m(1,1)==errors(er,1) && errors(er,2)<minE
+%             minE=errors(er,2);
+%             numE=er;
+%         end
+%     end   
+%     if ~isempty(intersections)
+%         x_c_T(x_new)=intersections(numE,1);
+%         y_c_T(x_new)=intersections(numE,2); 
+%     else
+% %         'no intersect'
+%         continue     
+%     end
 
     polyin=[];
     centrx=0;

@@ -16,26 +16,26 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
-nPoints = 3;
+nPoints = 50;
 
 r = 2*lambda;
 
 minAllowableDistance = r+lambda;
-x_c_T = [ 2.5 2.5];
-y_c_T = [ 4 7];
+% x_c_T = [ 2.5 2.5];
+% y_c_T = [ 4 7];
 %centers of charger placement areas
 % num_chargers = 5;
 % x_c_T = [ 2.5 2.5 1 6 4 ];
 % y_c_T = [ 2.1 4.5 1 5 7];
 
-% for i=1:100
-%     [x_c_Tg(i,:),y_c_Tg(i,:)] = sparse_c(6,stopx,stopy,2*r);
-%     [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_Tg(i,:),y_c_Tg(i,:));
-%     locDevx(i,:)=locDev(1,:);
-%     locDevy(i,:)=locDev(2,:);
-% end
+for i=1:100
+    [x_c_Tg(i,:),y_c_Tg(i,:)] = sparse_c(10,stopx,stopy,2*r);
+    [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_Tg(i,:),y_c_Tg(i,:));
+    locDevx(i,:)=locDev(1,:);
+    locDevy(i,:)=locDev(2,:);
+end
 
-for iter=1:1
+for iter=1:100
     
 % x_c_T = x_c_Tg(iter,:);
 % y_c_T = y_c_Tg(iter,:);
@@ -506,7 +506,7 @@ fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
 power_many(1,iter)=final_sum_total_power_received;
 
-end %iterations stop
+esnd %iterations stop
 
 
 sum_power_many = sum(power_many);
@@ -535,46 +535,46 @@ sum_power_many = sum(power_many);
 
 
 %plot the devices positions
- plot(locDev(1,:), locDev(2,:), 'ro');
+%  plot(locDev(1,:), locDev(2,:), 'ro');
 % plot(plots(:,1), plots(:,2), 'r.');
 
 % % % plot the placement areas
-for i=1:numel(x_c_Ti)
-    th = 0:step:2*pi+step;
-    xunit = r * cos(th) + x_c_Ti(i);
-    yunit = r * sin(th) + y_c_Ti(i);
-    
-    %check for points outside the plane
-    for j=1:numel(xunit)
-        if xunit(j)<0 xunit(j)=0;
-        elseif xunit(j)>stopx xunit(j)=stopx;end
-
-        if yunit(j)<0 yunit(j)=0;
-        elseif yunit(j)>stopy yunit(j)=stopy;end
-    end
-    plot(xunit, yunit,"y-",'LineWidth',2);
-end
-hold on
-
-% % plot the circles for possible positions
-colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
-for k=1:numel(inter)
-    for i=1:numel(dCradius{inter(k),x_new})
-        th = 0:step:2*pi+step;
-        xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
-        yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
-
-        %check for points outside the plane
-        for j=1:numel(xunit)
-            if xunit(j)<0 xunit(j)=0;
-            elseif xunit(j)>stopx xunit(j)=stopx;end
-
-            if yunit(j)<0 yunit(j)=0;
-            elseif yunit(j)>stopy yunit(j)=stopy;end
-        end
-        plot(xunit, yunit,colors(k),'LineWidth',1.5);
-    end
-end
+% for i=1:numel(x_c_Ti)
+%     th = 0:step:2*pi+step;
+%     xunit = r * cos(th) + x_c_Ti(i);
+%     yunit = r * sin(th) + y_c_Ti(i);
+%     
+%     %check for points outside the plane
+%     for j=1:numel(xunit)
+%         if xunit(j)<0 xunit(j)=0;
+%         elseif xunit(j)>stopx xunit(j)=stopx;end
+% 
+%         if yunit(j)<0 yunit(j)=0;
+%         elseif yunit(j)>stopy yunit(j)=stopy;end
+%     end
+%     plot(xunit, yunit,"y-",'LineWidth',2);
+% end
+% hold on
+% 
+% % % plot the circles for possible positions
+% colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
+% for k=1:numel(inter)
+%     for i=1:numel(dCradius{inter(k),x_new})
+%         th = 0:step:2*pi+step;
+%         xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
+%         yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
+% 
+%         %check for points outside the plane
+%         for j=1:numel(xunit)
+%             if xunit(j)<0 xunit(j)=0;
+%             elseif xunit(j)>stopx xunit(j)=stopx;end
+% 
+%             if yunit(j)<0 yunit(j)=0;
+%             elseif yunit(j)>stopy yunit(j)=stopy;end
+%         end
+%         plot(xunit, yunit,colors(k),'LineWidth',1.5);
+%     end
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

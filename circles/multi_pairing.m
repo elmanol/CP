@@ -2,7 +2,7 @@
 %%%%%%%%%%%%%%%%  Circle Charger Placement %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+warning('off','all')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%   Initializiations  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,7 +49,13 @@ pairing_way='closest';
 % x_c_T = [3 6 9 3 6 9];
 % y_c_T = [3 3 3 8 8 8];
 
-[x_c_T,y_c_T] = sparse_c(10,stopx,stopy,2*r);
+% [x_c_T,y_c_T] = sparse_c(10,stopx,stopy,2*r);
+% for i=1:100
+%     [x_c_Tg(i,:),y_c_Tg(i,:)] = sparse_c(10,stopx,stopy,2*r);
+%     [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_Tg(i,:),y_c_Tg(i,:));
+%     locDevx(i,:)=locDev(1,:);
+%     locDevy(i,:)=locDev(2,:);
+% end
 
 for iter=1:100
     
@@ -106,6 +112,7 @@ end
 
 %get a random charger x
 x=randi([1,length(x_c_T)]);
+x=1;
 x_range = C{x};
 closeToDevArray=[];
 
@@ -208,7 +215,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
     
     inter = intersect(C{x},C{x_new});
 
-    %sort the chargers according their distance to chargers
+    %sort the devices according their distance to chargers
     inter_dist = zeros(1,numel(inter));
     inter_counter=0;
     intersections = [];
@@ -221,8 +228,10 @@ while sum(chargers_remained==0)~=length(x_c_T)
     end
     [~,pos]=sort(inter_dist,'ascend');
     inter = inter(pos);
-    inter = [inter inter(inter_counter+1)];
-    inter(inter_counter+1)=[];
+    if inter_counter~=0
+        inter = [inter inter(inter_counter+1)];
+        inter(inter_counter+1)=[];
+    end
 %     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
 %     if numel(inter)>1
 %         plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
@@ -441,8 +450,8 @@ for i = 1:length(x_c_T)
     end
 end
 
-itial_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
-intial_sum_total_power_received = sum(itial_total_power_received);
+initial_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+initial_sum_total_power_received = sum(initial_total_power_received);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -486,8 +495,8 @@ final_total_power_received = circles_total_power(x_c_T, 1:size(locDev,2), distan
 final_sum_total_power_received = sum(final_total_power_received);
 
 
-gain=final_sum_total_power_received-intial_sum_total_power_received;
-realtive_gain = gain/intial_sum_total_power_received;
+gain=final_sum_total_power_received-initial_sum_total_power_received;
+realtive_gain = gain/initial_sum_total_power_received;
 fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -571,23 +580,5 @@ sum_power_multi = sum(power_multi);
 % end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
-
 
 

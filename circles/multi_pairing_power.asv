@@ -2,7 +2,7 @@
 %%%%%%%%%%%%%%%%  Circle Charger Placement %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-warning('off','all')
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%   Initializiations  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -16,7 +16,7 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
-nPoints = 50;
+nPoints = 15;
 
 r = 2*lambda;
 
@@ -29,10 +29,11 @@ minAllowableDistance = r+lambda;
 % y_c_T = [ 2.1 4.5 1 5 7];
 
 for i=1:100
-    [x_c_Tg(i,:),y_c_Tg(i,:)] = sparse_c(10,stopx,stopy,2*r);
+    [x_c_Tg(i,:),y_c_Tg(i,:)] = sparse_c(6,stopx,stopy,2*r);
     [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_Tg(i,:),y_c_Tg(i,:));
     locDevx(i,:)=locDev(1,:);
     locDevy(i,:)=locDev(2,:);
+    initial_sum_total_power_received=0;
 end
 
 for iter=1:100
@@ -227,27 +228,20 @@ while sum(chargers_remained==0)~=length(x_c_T)
     end
     [~,pos]=sort(inter_dist,'ascend');
     inter = inter(pos);
-
-%     plots = [plots; locDev(1,inter(1)) locDev(2,inter(1))];
-%     if numel(inter)>1
-%         plots = [plots; locDev(1,inter(2)) locDev(2,inter(2))];
-%     end
     
-    pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
+%     pairs = [pairs; x_c_T(x) y_c_T(x) x_c_T(x_new) y_c_T(x_new)];
     found=[];
     
     inter_pair_num = (numel(inter)*(numel(inter)-1))/2;
     total_errors = zeros(inter_pair_num,4);
     
     %for every device that is in the raius of both chargers 
+    allint=[];
+    best_int_power=[];
     for i=1:numel(inter)
         
         %get the coordinates of the device
         device = [locDev(1,inter(i)) locDev(2,inter(i))];
-
-%         d1=norm( device1 - [x_c_T(x) y_c_T(x)]);
-%         d2=norm( device1 - [x_c_T(x_new) y_c_T(x_new)]);
-%         x_new=(d1>d2)+1;
 
 
         %find the line intersecting both the device and the charger
@@ -361,73 +355,52 @@ while sum(chargers_remained==0)~=length(x_c_T)
                         end
                     end
                     
-                    %find the distances between the intersection points
-                    %and the rest of the circles. add them to errors
-                    errors=zeros(size(intersections,1),2);
-                    for k=1:numel(inter)
-                        if inter(k)~=inter(i) && inter(k)~=inter(j)
-                            x3p  = locDev(1,inter(k));
-                            y3p  = locDev(2,inter(k));     
-                            for c3p = 1:size(dCradius{inter(k),x_new},2)
-                                r3p = dCradius{inter(k),x_new}(c3p); 
-                                for s=1:size(intersections,1)
-                                   interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]); 
-                                   if abs(interToDev-r3p)<lambda/5
-                                        errors(s,1)= errors(s,1)+1;
-                                        errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
-                                   else
-                                        %error(s,i)=0;
-                                   end
-                                end
-                            end
-                        end
-                    end
-                    % find the best out of the intrersection points in
-                    % errors
-                    m=max(errors(:,1));
-                    minE=10^3;
-                    for er=1:size(errors,1)
-                        if m==errors(er,1) && errors(er,2)<minE %&& ~(errors(er,2)==0 && errors(er,1)==0)
-                            minE=errors(er,2);
-                            numE=er;
-                        end
-                    end 
-                    %if no good point is found
-                    if minE==10^3 
-                        numE=1; 
-                    end
-                    
-                    it=i*(i-1)/2-i+1 +j;
-                    if ~isempty(intersections)
-                        total_errors(it,1)=intersections(numE,1);
-                        total_errors(it,2)=intersections(numE,2);
-                        total_errors(it,3)=errors(numE,1);
-                        total_errors(it,4)=errors(numE,2);
-                    end
+
                 end
        
             end
     end
-    if length(inter)>1
-        m2=max(total_errors(:,3));
-        minE2=10^3;
-        for er2=1:size(total_errors,1)
-            if m2==total_errors(er2,3) && total_errors(er2,4)<minE2
-                minE2=total_errors(er2,4);
-                numE2=er2;
-            end
-        end 
-
-
-        if ~isempty(total_errors)
-            x_c_T(x_new)=total_errors(numE2,1);
-            y_c_T(x_new)=total_errors(numE2,2);
-        else
-            continue
+        allint=allint';
+        
+        
+        for j = 1:size(allint,2)
+            x_c_T(x_new) = allint(1,j);
+            y_c_T(x_new) = allint(2,j);
+            for i = 1:length(x_c_T)
+                for z = 1:size(locDev,2)
+                    distance_int(i,z) = norm([x_c_T(i) y_c_T(i)] - [locDev(1,z) locDev(2,z)]);
+                end
+            end 
+            int_power = sum(circles_total_power(x_c_T, 1:size(locDev,2), distance_int, lambda));
+            best_int_power = [best_int_power int_power];
+            
         end
 
-    end
+        [~,k]=max(best_int_power);
+        if ~isempty(allint)
+            x_c_T(x_new)= allint(1,k);
+            y_c_T(x_new)= allint(2,k);
+        end
+       
+        
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -453,8 +426,8 @@ for i = 1:length(x_c_T)
     end
 end
 
-itial_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
-intial_sum_total_power_received = sum(itial_total_power_received);
+initial_total_power_received = circles_total_power(x_c_Ti, 1:size(locDev,2), distance, lambda);
+initial_sum_total_power_received = sum(initial_total_power_received);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -505,22 +478,12 @@ fprintf('Realtive gain: : %f .\n', realtive_gain*100);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-power_many(1,iter)=final_sum_total_power_received;
+power_many_power(1,iter)=final_sum_total_power_received;
 
 end %iterations stop
 
 
-sum_power_many = sum(power_many);
-
-
-
-
-
-
-
-
-
-
+sum_power_many_power = sum(power_many_power);
 
 
 
@@ -528,45 +491,45 @@ sum_power_many = sum(power_many);
 %%%%%%%%%%%%%%%%%%%  Plots  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% plot the power distribution
-% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-% [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
-% abs(P_Transfered);
-% figure
-% surf(Y,X,abs(P_Transfered));
+%%%%%plot the power distribution
+[Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+[X,Y] = meshgrid(0:step:stopx,0:step:stopy);
+abs(P_Transfered);
+figure
+surf(Y,X,abs(P_Transfered));
 
 
-% hold on
+hold on
 % if ~isempty(polyin)
 %     plot(centrx,centry, 'm*','LineWidth',10);
 % end  
 
 % hold on
-% plot(allint(:,1), allint(:,2), 'r*');
+plot(allint(:,1), allint(:,2), 'r*');
 
 
-%plot the devices positions
-%  plot(locDev(1,:), locDev(2,:), 'ro');
-% plot(plots(:,1), plots(:,2), 'r.');
+%%%%%%%%plot the devices positions
+ plot(locDev(1,:), locDev(2,:), 'r.');
+%plot(plots(:,1), plots(:,2), 'r.');
 
-% % % plot the placement areas
-% for i=1:numel(x_c_Ti)
-%     th = 0:step:2*pi+step;
-%     xunit = r * cos(th) + x_c_Ti(i);
-%     yunit = r * sin(th) + y_c_Ti(i);
-%     
-%     %check for points outside the plane
-%     for j=1:numel(xunit)
-%         if xunit(j)<0 xunit(j)=0;
-%         elseif xunit(j)>stopx xunit(j)=stopx;end
-% 
-%         if yunit(j)<0 yunit(j)=0;
-%         elseif yunit(j)>stopy yunit(j)=stopy;end
-%     end
-%     plot(xunit, yunit,"y-",'LineWidth',2);
-% end
-% hold on
-% 
+% % plot the placement areas
+for i=1:numel(x_c_Ti)
+    th = 0:step:2*pi+step;
+    xunit = r * cos(th) + x_c_Ti(i);
+    yunit = r * sin(th) + y_c_Ti(i);
+    
+    %check for points outside the plane
+    for j=1:numel(xunit)
+        if xunit(j)<0 xunit(j)=0;
+        elseif xunit(j)>stopx xunit(j)=stopx;end
+
+        if yunit(j)<0 yunit(j)=0;
+        elseif yunit(j)>stopy yunit(j)=stopy;end
+    end
+    plot(xunit, yunit,"y-",'LineWidth',2);
+end
+hold on
+
 % % % plot the circles for possible positions
 % colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
 % for k=1:numel(inter)
@@ -574,12 +537,12 @@ sum_power_many = sum(power_many);
 %         th = 0:step:2*pi+step;
 %         xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
 %         yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
-% 
+%         
 %         %check for points outside the plane
 %         for j=1:numel(xunit)
 %             if xunit(j)<0 xunit(j)=0;
 %             elseif xunit(j)>stopx xunit(j)=stopx;end
-% 
+%             
 %             if yunit(j)<0 yunit(j)=0;
 %             elseif yunit(j)>stopy yunit(j)=stopy;end
 %         end
@@ -609,3 +572,24 @@ sum_power_many = sum(power_many);
 % xlabel('Number of intersections') % x-axis label
 % ylabel('Power') % y-axis label
 
+
+
+figure
+set(gca,'xticklabel',{'Multi','Centroid','Many'})
+x=1:100;
+plot(x,sum_power_many,'g-' ,x, sum_power,'r--')
+xlabel('Time(Rounds)')
+ylabel('Cumulative Power(Watts)')
+legend('Multi','Centroid','Many','Unbounded Radius','northoutside','Orientation','horizontal')
+
+
+mean_powers=[initial_sum_total_power_received sum_power_centroids sum_power_multi sum_power_many_power ]/100;
+br=bar(mean_powers);
+br.FaceColor = 'flat';
+br.CData(1,:) = [0 0.4 0.7];
+br.CData(2,:) = [0 0.65 0.14];
+br.CData(3,:) = [0.85 0.33 0.1];
+br.CData(4,:) = [0.93 0.69 0.13];
+% br.CData(5,:) = [0.4 0.6 0.7];
+xlabel('Intersections Approach') % x-axis label
+ylabel('Power') % y-axis label

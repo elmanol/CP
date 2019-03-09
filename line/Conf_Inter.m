@@ -36,9 +36,10 @@ set(gca,'XTickLabel',{' '})
 
 
 %hold off;
-xlabel('Time (rounds)')
-ylabel('Cumulative Power (watts)')
+xlabel('Time (Rounds)')
+ylabel('Cumulative Power (Watts)')
 set(gca,'XTickLabel',{' '})
+
 % %saveas(gcf,'images/ci.eps','eps');
 % print('images/ci','-depsc','-r0')
 % saveas(gcf,'images/ci.png','png');

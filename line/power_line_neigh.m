@@ -26,7 +26,7 @@ lambda = 0.3;
 %     y_c_T = randi(5,1,10);%[ 0 2 5];
 % x_c_T = [ 2.5 2.5 1 6 4 ];
 % y_c_T = [ 2.1 4.5 1 5 7];
-% 
+%
 % x_c_Ti = x_c_T;
 % y_c_Ti = y_c_T;
 
@@ -70,24 +70,24 @@ power_per_rep = zeros(4,90);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 for iterations=1:num_iterations
 
-    
+
 %     x_c_T = [ 2.5 2.5 1 6 4 ];
 %     y_c_T = [ 2.1 4.5 1 5 7];
-     
-    
+
+
     %find random devices positions
 
     % nDev = length(x_c_R);
-     
-    
+
+
     x_c_T = x_c_Ti;
     y_c_T = y_c_Ti;
 
-    
-    
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     for i = 1:length(x_c_T)
         for j = 1:nDev
             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
@@ -105,7 +105,7 @@ for iterations=1:num_iterations
             if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius
                C{i}=[C{i} j];
             end
-        end 
+        end
     end
 
 
@@ -155,13 +155,13 @@ for iterations=1:num_iterations
 
             total_power_received(i,1) = sum(total_power( x_c_T,C{1,i},distance,lambda));
 
-        end  
+        end
         x=x_start;
 
-        %(j gives us the number of the step) 
-        %after making each step and changing the distances, get the power 
+        %(j gives us the number of the step)
+        %after making each step and changing the distances, get the power
         %gained into an array (total_power_received)
-        for j=2:num_steps+1 
+        for j=2:num_steps+1
 
             %check if the new step gets us out of bounds
             if x+x_step<stopx
@@ -174,7 +174,7 @@ for iterations=1:num_iterations
                 end
 
                 if ~isempty(C{1,i})
-                    %find the power that only the devices inside charger's i 
+                    %find the power that only the devices inside charger's i
                     %radius get (from all the chargers)
                     total_power_received(i,j) = sum(total_power( x_c_T,C{1,i},distance,lambda));
                 end
@@ -206,18 +206,18 @@ for iterations=1:num_iterations
 
 
         neigh_gain(1,iterations)=realtive_gain;
-    
-        
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%   increased radius +1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-    
+%%%%%%%%%%%%%%%%%   increased radius +1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     x_c_T = x_c_Ti;
     y_c_T = y_c_Ti;
 
@@ -231,7 +231,7 @@ for iterations=1:num_iterations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    
+
     %find the devices that are in the range of each charger
     C=cell(1,length(x_c_T));
     for i=1:length(x_c_T)
@@ -239,7 +239,7 @@ for iterations=1:num_iterations
             if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+1
                C{i}=[C{i} j];
             end
-        end 
+        end
     end
 
 
@@ -254,7 +254,7 @@ for iterations=1:num_iterations
     powers=[];
 
     total_power_all_chargers=0;
-    
+
     for rep=1:90
 
     %   total_power_received=zeros(num_steps+1);%,length(x_c_R));
@@ -289,13 +289,13 @@ for iterations=1:num_iterations
 
             total_power_received(i,1) = sum(total_power( x_c_T,C{1,i},distance,lambda));
 
-        end  
+        end
         x=x_start;
 
-        %(j gives us the number of the step) 
-        %after making each step and changing the distances, get the power 
+        %(j gives us the number of the step)
+        %after making each step and changing the distances, get the power
         %gained into an array (total_power_received)
-        for j=2:num_steps+1 
+        for j=2:num_steps+1
 
             %check if the new step gets us out of bounds
             if x+x_step<stopx
@@ -308,7 +308,7 @@ for iterations=1:num_iterations
                 end
 
                 if ~isempty(C{1,i})
-                    %find the power that only the devices inside charger's i 
+                    %find the power that only the devices inside charger's i
                     %radius get (from all the chargers)
                     total_power_received(i,j) = sum(total_power( x_c_T,C{1,i},distance,lambda));
                 end
@@ -341,19 +341,19 @@ for iterations=1:num_iterations
 
 
         neigh_gain(2,iterations)=realtive_gain;
-    
 
-    
-    
-    
-    
-    
+
+
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%   increased radius +2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+%%%%%%%%%%%%%%%%%   increased radius +2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     x_c_T = x_c_Ti;
     y_c_T = y_c_Ti;
-    
+
     for i = 1:length(x_c_T)
         for j = 1:nDev
             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
@@ -371,7 +371,7 @@ for iterations=1:num_iterations
             if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+2
                C{i}=[C{i} j];
             end
-        end 
+        end
     end
 
 
@@ -421,13 +421,13 @@ for iterations=1:num_iterations
 
             total_power_received(i,1) = sum(total_power( x_c_T,C{1,i},distance,lambda));
 
-        end  
+        end
         x=x_start;
 
-        %(j gives us the number of the step) 
-        %after making each step and changing the distances, get the power 
+        %(j gives us the number of the step)
+        %after making each step and changing the distances, get the power
         %gained into an array (total_power_received)
-        for j=2:num_steps+1 
+        for j=2:num_steps+1
 
             %check if the new step gets us out of bounds
             if x+x_step<stopx
@@ -440,7 +440,7 @@ for iterations=1:num_iterations
                 end
 
                 if ~isempty(C{1,i})
-                    %find the power that only the devices inside charger's i 
+                    %find the power that only the devices inside charger's i
                     %radius get (from all the chargers)
                     total_power_received(i,j) = sum(total_power( x_c_T,C{1,i},distance,lambda));
                 end
@@ -470,21 +470,21 @@ for iterations=1:num_iterations
 
     gain = final_total_power_received; %- init_total_power_received;
     realtive_gain = gain;%/init_total_power_received;
-    
+
     neigh_gain(3,iterations)=realtive_gain;
 
-        
-    
-    
-    
-    
-    
+
+
+
+
+
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%   increased radius +3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     x_c_T = x_c_Ti;
     y_c_T = y_c_Ti;
-    
+
     for i = 1:length(x_c_T)
         for j = 1:nDev
             distance(i,j) = norm([x_c_T(i) y_c_T(i)] - [x_c_R(j) y_c_R(j)]);
@@ -502,7 +502,7 @@ for iterations=1:num_iterations
             if norm([x_c_R(j) y_c_R(j)] - [x_c_T(i) y_c_T(i)])< neigh_radius+15
                C{i}=[C{i} j];
             end
-        end 
+        end
     end
 
 
@@ -552,13 +552,13 @@ for iterations=1:num_iterations
 
             total_power_received(i,1) = sum(total_power( x_c_T,C{1,i},distance,lambda));
 
-        end  
+        end
         x=x_start;
 
-        %(j gives us the number of the step) 
-        %after making each step and changing the distances, get the power 
+        %(j gives us the number of the step)
+        %after making each step and changing the distances, get the power
         %gained into an array (total_power_received)
-        for j=2:num_steps+1 
+        for j=2:num_steps+1
 
             %check if the new step gets us out of bounds
             if x+x_step<stopx
@@ -571,7 +571,7 @@ for iterations=1:num_iterations
                 end
 
                 if ~isempty(C{1,i})
-                    %find the power that only the devices inside charger's i 
+                    %find the power that only the devices inside charger's i
                     %radius get (from all the chargers)
                     total_power_received(i,j) = sum(total_power( x_c_T,C{1,i},distance,lambda));
                 end
@@ -601,7 +601,7 @@ for iterations=1:num_iterations
 
     gain = final_total_power_received;% - init_total_power_received;
     realtive_gain = gain;%/init_total_power_received;
-    
+
     neigh_gain(4,iterations)=realtive_gain;
     every_iter_power1(iterations,:) = power_per_rep(1,:);
     every_iter_power2(iterations,:) = power_per_rep(2,:);
@@ -629,11 +629,25 @@ init(1,1:90)=init_total_power_received;
 figure
 set(gca,'xticklabel',{'1','2','3','4'})
 x=1:90;
+plot(...
+     x,mean(every_iter_power1,1),'g-',...
+     x,mean(every_iter_power2,1),'r-',...
+     x,mean(every_iter_power3,1),'k-',...
+     x,mean(every_iter_power4,1),'b-','LineWidth',2)
+xlabel('Time(Rounds)')
+ylabel('Cumulative Power(Watts)')
+legend('Radius 1m','Radius 2m','Radius 3m','Unbounded Radius','northoutside','Orientation','horizontal')
+
+
+init(1,1:90)=init_total_power_received;
+figure
+set(gca,'xticklabel',{'1','2','3','4'})
+x=1:90;
 plot(x,init,'c-',...
-     x,(every_iter_power1(3,:)),'g-',...
-     x,(every_iter_power2(3,:)),'r--',...
-     x,(every_iter_power3(3,:)),'k:',...
-     x,(every_iter_power4(3,:)),'b-.','LineWidth',2)
-xlabel('Time (Rounds)')
-ylabel('Cumulative Power (Watts)')
-legend('Initial Power','Radius 1','Radius 2','Radius 3','Unbounded Radius','northoutside','Orientation','horizontal')
+     x,(every_iter_power1(4,:)),'g-',...
+     x,(every_iter_power2(4,:)),'r--',...
+     x,(every_iter_power3(4,:)),'k-.',...
+     x,(every_iter_power4(4,:)),'b:','LineWidth',2)
+xlabel('Time(Rounds)')
+ylabel('Cumulative Power(Watts)')
+legend('Initial Power','Radius 1m','Radius 2m','Radius 3m','Unbounded Radius','northoutside','Orientation','horizontal')

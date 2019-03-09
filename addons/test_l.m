@@ -65,20 +65,20 @@ end
 subplot(3,1,1);
 plot(line,power1,"b-");
 title('Device 1 power')
-xlabel('Charger 1 position')
-ylabel('Device 1 Power(Watts)')
+xlabel('Charger 1 position (m)')
+ylabel('Power (Watts)')
 
 
 subplot(3,1,2);
 plot(line,power2,"r-");
 title('Device 2 power')
-xlabel('Charger 1 position')
-ylabel('Device 2 Power(Watts)')
+xlabel('Charger 1 position (m)')
+ylabel('Power (Watts)')
 
 subplot(3,1,3);
 plot(line,power1+power2,"g-");
 title("Sum of both devices' power")
-xlabel('Charger 1 position')
-ylabel('Device 2 Power(Watts)')
+xlabel('Charger 1 position (m)')
+ylabel('Power (Watts)')
 
 

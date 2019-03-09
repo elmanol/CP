@@ -36,13 +36,13 @@ lambda = 0.3;
 % locDevy=[0 0];
 %or
 %number of devices for random placement
-nDev=20; %an to allaksw allazw kai to x_c_R
+nDev=50; %an to allaksw allazw kai to x_c_R
 
 %minimum allowed distance from the chargers
 minAllowableDistance = 3*lambda/2;
 
 %charger radius
-c_r = 4;
+c_r = 100;
 
 neigh_radius = 100;
 
@@ -208,7 +208,7 @@ y_c_Ti = y_c_T;
 %     abs(P_Transfered);
 %     figure
 %     surf(Y,X,abs(P_Transfered));
-    final_power(iterations)= sum(total_power( x_c_T,1:nDev,distance,lambda));
+    final_power(iter)= sum(total_power( x_c_T,1:nDev,distance,lambda));
     x_c_T = x_c_Ti;
     y_c_T = y_c_Ti;
 % end
@@ -228,4 +228,4 @@ hold on
 % legend('Chargers Final','Chargers Initial','Nodes','Location','northoutside','Orientation','horizontal')
 % 
 
-plot(1:num_iterations,final_power,'-g')         
+% plot(1:num_iterations,final_power,'-g')         

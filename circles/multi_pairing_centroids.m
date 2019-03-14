@@ -21,13 +21,13 @@ initial_sum_total_power_received=0;
 
 
 %radius of charger placement areas
-r = 2*lambda;
+r = 2*lambda/4;
 
 %charger radius
 r_c = 2.5;
 
 %number of devices
-nPoints = 20;
+nPoints = 10;
 
 %minimum allowed distance from the chargers
 minAllowableDistance = r+lambda;
@@ -490,7 +490,7 @@ final_sum_total_power_received = sum(final_total_power_received);
     power_centroids(1,iter)=final_sum_total_power_received;
 end
 
-sum_power_centroids = sum(power_centroids);
+sum_power_centroids= sum(power_centroids);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%  Plots  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -529,7 +529,7 @@ for i=1:numel(x_c_Ti)
     plot(xunit, yunit,"y-",'LineWidth',2);
 end
 % hold on
-plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
+% plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
 
 
 

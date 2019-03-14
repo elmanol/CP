@@ -16,15 +16,15 @@ step = 0.05;
 %lambda
 lambda = 0.3;
 
-nPoints = 100;
+nPoints = 50;
 
-r = 2*lambda;
+r = lambda;
 
 minAllowableDistance = r+lambda;
 % x_c_T = [ 2.5 2.5];
 % y_c_T = [ 4 7];
 %centers of charger placement areas
-% num_chargers = 5;
+% num_chargers = 5;55
 % x_c_T = [ 2.5 2.5 1 6 4 ];
 % y_c_T = [ 2.1 4.5 1 5 7];
 
@@ -33,10 +33,10 @@ for i=1:100
     [locDev]=locations(nPoints, stopx,stopy,minAllowableDistance,x_c_Tg(i,:),y_c_Tg(i,:));
     locDevx(i,:)=locDev(1,:);
     locDevy(i,:)=locDev(2,:);
-    initial_sum_total_power_received=0;
 end
+initial_sum_total_power_received=0;
 
-for iter=1:100
+for iter=1:1
     
 x_c_T = x_c_Tg(iter,:);
 y_c_T = y_c_Tg(iter,:);
@@ -484,7 +484,7 @@ end %iterations stop
 
 
 sum_power_many_power = sum(power_many_power);
-initial_sum = sum(initial);
+initial_sum_one= sum(initial);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -492,11 +492,11 @@ initial_sum = sum(initial);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%plot the power distribution
-[Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-[X,Y] = meshgrid(0:step:stopx,0:step:stopy);
-abs(P_Transfered);
-figure
-surf(Y,X,abs(P_Transfered));
+% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+% [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
+% abs(P_Transfered);
+% figure
+% surf(Y,X,abs(P_Transfered));
 
 
 hold on
@@ -505,12 +505,12 @@ hold on
 % end  
 
 % hold on
-plot(allint(:,1), allint(:,2), 'r*');
+% plot(allint(:,1), allint(:,2), 'r*');
 
 
 %%%%%%%%plot the devices positions
- plot(locDev(1,:), locDev(2,:), 'r.');
-%plot(plots(:,1), plots(:,2), 'r.');
+plot(x_c_Ti, y_c_Ti, 'g*');
+plot(locDev(1,:), locDev(2,:), 'r*');
 
 % % plot the placement areas
 for i=1:numel(x_c_Ti)
@@ -529,7 +529,8 @@ for i=1:numel(x_c_Ti)
     plot(xunit, yunit,"y-",'LineWidth',2);
 end
 hold on
-
+legend('Chargers','Devices','Charger Movement Areas','Location','northoutside','Orientation','horizontal')
+% 
 % % % plot the circles for possible positions
 % colors=["w-","g-","r-","m-","b-","r-","m-","b-","k-"];
 % for k=1:numel(inter)
@@ -574,22 +575,29 @@ hold on
 
 
 
-figure
-set(gca,'xticklabel',{'Multi','Centroid','Many'})
-x=1:100;
-plot(x,sum_power_many,'g-' ,x, sum_power,'r--')
-xlabel('Time(Rounds)')
-ylabel('Cumulative Power(Watts)')
-legend('Multi','Centroid','Many','Unbounded Radius','northoutside','Orientation','horizontal')
+% figure
+% set(gca,'xticklabel',{'Multi','Centroid','Many'})
+% x=1:100;
+% plot(x,sum_power_many,'g-' ,x, sum_power,'r--')
+% xlabel('Time(Rounds)')
+% ylabel('Cumulative Power(Watts)')
+% legend('Multi','Centroid','Many','Unbounded Radius','northoutside','Orientation','horizontal')
+% 
+% 
+mean_powers=[initial_sum sum_power_centroids sum_power_multi_r sum_power_multi sum(line_power) sum_power_many_power]/100;
+mean_powers=[initial_small centroids_small random_small multi_small sum(line_small) power_small]/100;
 
 
-mean_powers=[initial_sum sum_power_centroids sum_power_multi sum_power_many_power ]/100;
 br=bar(mean_powers);
 br.FaceColor = 'flat';
 br.CData(1,:) = [0 0.4 0.7];
 br.CData(2,:) = [0 0.65 0.14];
 br.CData(3,:) = [0.85 0.33 0.1];
 br.CData(4,:) = [0.93 0.69 0.13];
-% br.CData(5,:) = [0.4 0.6 0.7];
+br.CData(5,:) = [0.4 0.6 0.7];
+br.CData(4,:) = [0.8 0.5 0.1];
 xlabel('Intersections Approach') % x-axis label
 ylabel('Power') % y-axis label
+legend('Multi','Centroid','Many','Unbounded Radius','northoutside','Orientation','horizontal')
+names={'Initial';'Appr. C';'Appr. B';'Appr. A';'Alg. 1';'Appr. D'};
+set(gca,'xticklabel',names)

@@ -38,6 +38,8 @@ lambda = 0.3;
 %number of devices for random placement
 nDev=50; %an to allaksw allazw kai to x_c_R
 
+
+
 %minimum allowed distance from the chargers
 minAllowableDistance = 3*lambda/2;
 
@@ -64,6 +66,7 @@ num_iterations=100;
 %%%%%%%%%%%%%%%%%%%%%%%   Main  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 line_power=0;
+line_power_one=0;
 for iter=1:100
 
 x_c_T = x_c_Tg(iter,:);
@@ -213,12 +216,12 @@ y_c_Ti = y_c_T;
     y_c_T = y_c_Ti;
 % end
 line_power = line_power + total_power( x_c_T,1:nDev,distance,lambda);
+line_powert(iter) =  sum(total_power( x_c_T,1:nDev,distance,lambda));
 end   
 hold on
 %plot the devices positions
 % plot(locDev(1,:), locDev(2,:), 'g*');
 % plot(points(:,1), points(:,2), 'r*');
-
 
 
 % figure(11)

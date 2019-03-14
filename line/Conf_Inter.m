@@ -15,6 +15,7 @@ for i=1:90
     ts = tinv([0.025  0.975],length(xx(:,i))-1);    % T-Score
     CI_Discrete3(:,i) = mean(xx(:,i)) + ts*SEM;    % Confidence Intervals
 
+    
     xx(:,i) = every_iter_power4(:,i);% Create Data
     SEM = std(xx(:,i))/sqrt(length(xx(:,i)));    % Standard Error
     ts = tinv([0.025  0.975],length(xx(:,i))-1);    % T-Score

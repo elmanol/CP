@@ -17,7 +17,7 @@ step = 0.05;
 lambda = 0.3;
 
 %radius of charger placement areas
-r = 2*lambda;
+r = 2*lambda/4;
 
 %charger radius
 r_c = 2.5;
@@ -59,10 +59,10 @@ pairing_way='closest';
 
 for iter=1:100
 
-%     x_c_T = x_c_Tg(iter,:);
-%     y_c_T = y_c_Tg(iter,:);
+    x_c_T = x_c_Tg(iter,:);
+    y_c_T = y_c_Tg(iter,:);
 
-%     locDev = [locDevx(iter,:);locDevy(iter,:)];
+    locDev = [locDevx(iter,:);locDevy(iter,:)];
 %     locDev = [1 4 ; 5 3.2]
 %     x_c_T = [ 2.5 2.5];
 %     y_c_T = [ 4 7];
@@ -102,7 +102,7 @@ dCradius = cell(length(locDev),length(x_c_T));
 C=cell(1,length(x_c_T));
 for i=1:length(locDev)
     for j=1:length(x_c_T)
-        if norm([locDev(1,i) locDev(2,i)] - [x_c_T(j) y_c_T(j)])< (r+r_c+2)
+        if norm([locDev(1,i) locDev(2,i)] - [x_c_T(j) y_c_T(j)])< 3%(r+r_c+2)
            C{j}=[C{j} i];
         end
     end
@@ -226,8 +226,8 @@ while sum(chargers_remained==0)~=length(x_c_T)
          x_mean = x2;
          inter_dist(i) = x_mean;
     end
-    [~,pos]=sort(inter_dist,'ascend');
-    inter = inter(pos);
+%     [~,pos]=sort(inter_dist,'ascend');
+%     inter = inter(pos);
     if inter_counter~=0
         inter = [inter inter(inter_counter+1)];
         inter(inter_counter+1)=[];
@@ -366,7 +366,7 @@ while sum(chargers_remained==0)~=length(x_c_T)
                 for s=1:size(intersections,1)
                    interToDev = norm([x3p y3p]-[intersections(s,1) intersections(s,2)]);
                    if abs(interToDev-r3p)<lambda/5
-                        errors(s,1)= errors(s,1)+1/norm(device-[intersections(s,1) intersections(s,2)])^2;
+                        errors(s,1)= errors(s,1)+1+1/norm(device-[intersections(s,1) intersections(s,2)])^2;
                         errors(s,2)= errors(s,2)+ abs(interToDev-r3p);
                    else
                         %error(s,i)=0;
@@ -506,7 +506,7 @@ power_multi(1,iter)=final_sum_total_power_received;
 
 end %iterations stop
 
-sum_power_multi = sum(power_multi);
+sum_power_multi= sum(power_multi);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%  Plots  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -519,26 +519,36 @@ sum_power_multi = sum(power_multi);
 % hold on
 % plot(allint(:,1), allint(:,2), 'kd','LineWidth',1.5);
 %
-% hold on
-% for i=1:numel(x_c_Ti)
-%     th = 0:step:2*pi+step;
-%     xunit = r * cos(th) + x_c_Ti(i);
-%     yunit = r * sin(th) + y_c_Ti(i);
-%
-%     %check for points outside the plane
-%     for j=1:numel(xunit)
-%         if xunit(j)<0 xunit(j)=0;
-%         elseif xunit(j)>stopx xunit(j)=stopx;end
-%
-%         if yunit(j)<0 yunit(j)=0;
-%         elseif yunit(j)>stopy yunit(j)=stopy;end
-%     end
-%     p=plot(xunit, yunit,"-");
-%     p.LineWidth = 2;
-%     p.Color = [ 1 0.84 0];
-%     set(0,'DefaultLegendAutoUpdate','off')
-%
-% end
+
+
+
+[Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
+[X,Y] = meshgrid(0:step:stopx,0:step:stopy);
+abs(P_Transfered);
+figure
+surf(Y,X,abs(P_Transfered));
+
+hold on
+for i=1:numel(x_c_Ti)
+    th = 0:step:2*pi+step;
+    xunit = r * cos(th) + x_c_Ti(i);
+    yunit = r * sin(th) + y_c_Ti(i);
+    
+    %check for points outside the plane
+    for j=1:numel(xunit)
+        if xunit(j)<0 xunit(j)=0;
+        elseif xunit(j)>stopx xunit(j)=stopx;end
+
+        if yunit(j)<0 yunit(j)=0;
+        elseif yunit(j)>stopy yunit(j)=stopy;end
+    end
+    hold on
+    p=plot(xunit, yunit,"-");
+    p.LineWidth = 2;
+    p.Color = [ 1 0.84 0];
+    set(0,'DefaultLegendAutoUpdate','off')
+    hold on
+end
 
 % xlabel('x(m)')
 % ylabel('y(m)')
@@ -548,20 +558,18 @@ sum_power_multi = sum(power_multi);
 % set(gca,'ytick',[])
 % set(0,'DefaultLegendAutoUpdate','off')
 % %plot the power distribution
-% [Pt, Gt, Gr, lamda, k,P_Transfered]=powers( x_c_T,y_c_T,stopx,stopy,step);
-% [X,Y] = meshgrid(0:step:stopx,0:step:stopy);
-% abs(P_Transfered);
-% figure
-% surf(Y,X,abs(P_Transfered));
+
+
 %
 %
-% % hold on
+hold on
 % % if ~isempty(polyin)
 % %     plot(centrx,centry, 'm*','LineWidth',10);
 % % end
 % hold on
 % %plot the devices positions
-% % plot(locDev(1,:), locDev(2,:), 'g*');
+ plot(x_c_T, y_c_T, 'm*','LineWidth',5);
+plot(locDev(1,:), locDev(2,:), 'g*');
 % hold on
 % plot(allint(:,1), allint(:,2), 'kd');
 % % plot(plots(:,1), plots(:,2), 'r.');
@@ -572,26 +580,26 @@ sum_power_multi = sum(power_multi);
 
 
 
-% hold on
-% % plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
-% % % plot the circles for possible positions
-% colors=["b-","r-","w-","m-","b-","r-","m-","b-","k-"];
-% for k=1:numel(inter)
-%     for i=1:numel(dCradius{inter(k),x_new})
-%         th = 0:step:2*pi+step;
-%         xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
-%         yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
-%
-%         %check for points outside the plane
-%         for j=1:numel(xunit)
-%             if xunit(j)<0 xunit(j)=0;
-%             elseif xunit(j)>stopx xunit(j)=stopx;end
-%
-%             if yunit(j)<0 yunit(j)=0;
-%             elseif yunit(j)>stopy yunit(j)=stopy;end
-%         end
-%         plot(xunit, yunit,colors(k),'LineWidth',1.5);
-%     end
-% end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+hold on
+% plot(polyy(:,1), polyy(:,2),"m*",'LineWidth',5);
+% % plot the circles for possible positions
+colors=["b-","r-","w-","m-","b-","r-","m-","b-","k-"];
+for k=1:numel(inter)
+    for i=1:numel(dCradius{inter(k),x_new})
+        th = 0:step:2*pi+step;
+        xunit = dCradius{inter(k),x_new}(i) * cos(th) + locDev(1,inter(k));
+        yunit = dCradius{inter(k),x_new}(i) * sin(th) + locDev(2,inter(k));
+
+        %check for points outside the plane
+        for j=1:numel(xunit)
+            if xunit(j)<0 xunit(j)=0;
+            elseif xunit(j)>stopx xunit(j)=stopx;end
+
+            if yunit(j)<0 yunit(j)=0;
+            elseif yunit(j)>stopy yunit(j)=stopy;end
+        end
+        plot(xunit, yunit,colors(k),'LineWidth',1.5);
+    end
+end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
